@@ -1,7 +1,11 @@
-import os
-import uuid
-
-from django.core.exceptions import ValidationError
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.conf import settings
-from django.utils.text import slugify
+
+
+class CustomUser(AbstractUser):
+    username = models.CharField(max_length=24, unique=True)
+    email = models.EmailField(unique=True)
+    home_page = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return self.username
