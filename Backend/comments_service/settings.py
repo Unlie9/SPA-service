@@ -40,8 +40,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'rest_framework',
-    'captcha',
-
+    'rest_framework.authtoken',
     'comments',
     'user',
 ]
