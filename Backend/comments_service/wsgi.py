@@ -1,5 +1,5 @@
 """
-WSGI config for spa_service project.
+WSGI config for comments project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'spa_service.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'comments.settings')
 
 application = get_wsgi_application()
