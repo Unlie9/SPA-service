@@ -1,10 +1,9 @@
 from django.urls import path, include
-from rest_framework import routers
 
-
-router = routers.DefaultRouter()
-router.register("", "")
+from user.views import CreateUserView
 
 urlpatterns = [
-    path("", include(router.urls))
+    path("register/", CreateUserView.as_view(), name="create")
 ]
+
+app_name = "user"
