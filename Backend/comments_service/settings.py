@@ -37,9 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
     'corsheaders',
     'django_filters',
+
+    'rest_framework',
+
     'comments',
 ]
 
@@ -78,7 +80,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'comments.wsgi.application'
+WSGI_APPLICATION = 'comments_service.wsgi.application'
 
 
 # Database
