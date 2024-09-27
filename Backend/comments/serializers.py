@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment
+from comments.utils import validate_html
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -17,6 +19,14 @@ class CommentSerializer(serializers.ModelSerializer):
         if obj.replies.exists():
             return CommentSerializer(obj.replies.all(), many=True).data
         return None
+
+    # TODO think about making validation of html on client level
+    # @staticmethod
+    # def validate_text(attrs):
+    #     try:
+    #         return validate_html(attrs["text"])
+    #     except Exception:
+    #         raise ValidationError({"detail": "This html code cannot be used"})
 
 
 class CommentListSerializer(serializers.ModelSerializer):

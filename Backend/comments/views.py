@@ -1,10 +1,6 @@
 from django.db import transaction
-from rest_framework import generics
-from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.filters import OrderingFilter
 from rest_framework.exceptions import ValidationError
-from rest_framework.settings import api_settings
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 
 from comments.serializers import CommentSerializer, CommentListSerializer
@@ -12,11 +8,14 @@ from comments.models import Comment
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentSerializer
     queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    filter_backends = [OrderingFilter]
+    filterset_fields = ["user__username", "user__email", "created_at"]
+    ordering_fields = ["created_at"]
 
     def get_queryset(self):
-        return self.queryset.filter(reply__isnull=True)
+        return self.queryset.filter(reply__isnull=True).order_by("-created_at")
 
     def get_serializer_class(self):
         if self.action == "list":
