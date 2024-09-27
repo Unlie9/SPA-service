@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'drf_spectacular',
+    'drf_recaptcha',
     
     'comments',
     'user',
@@ -94,11 +95,13 @@ SPECTACULAR_SETTINGS = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    # TODO change ACCES TOKEN LIFETIME
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=3),
     "ROTATE_REFRESH_TOKENS": False,
 }
 
+DRF_RECAPTCHA_SECRET_KEY = "Need to move .env"
 
 TEMPLATES = [
     {

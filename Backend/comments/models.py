@@ -6,8 +6,9 @@ class Comment(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='comments'
+        related_name="comments"
     )
+    reply = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="replies")
     text = models.CharField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
 
