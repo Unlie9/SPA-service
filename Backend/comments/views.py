@@ -24,19 +24,15 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         reply_id = self.request.data.get("reply")
+        # home_page = self.request.data.get("home_page")
         with transaction.atomic():
             if reply_id:
                 try:
                     comment_for_reply = Comment.objects.get(pk=reply_id)
                 except Comment.DoesNotExist:
                     raise ValidationError({"detail": "Comment not found"})
-                try:
-                    serializer.save(user=self.request.user, reply=comment_for_reply)
-                except Exception as e:
-                    raise ValidationError({"detail": f"Error saving reply: {str(e)}"})
-                else:
-                    try:
-                        serializer.save(user=self.request.user)
-                    except Exception as e:
-                        raise ValidationError({"detail": f"Error saving comment: {str(e)}"})
-
+                serializer.save(user=self.request.user, reply=comment_for_reply)
+                # , home_page=home_page
+            else:
+                serializer.save(user=self.request.user)
+                # , home_page=home_page

@@ -2,12 +2,12 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment
-from comments.utils import validate_html
 
 
 class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
     reply = serializers.PrimaryKeyRelatedField(queryset=Comment.objects.all(), required=False, allow_null=True)
+    # home_page = serializers.CharField(source="user.home_page")
 
     class Meta:
         model = Comment
@@ -16,7 +16,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_replies(obj):
-        if obj.replies.exists():
+        if isinstance(obj, Comment) and obj.replies.exists():
             return CommentSerializer(obj.replies.all(), many=True).data
         return None
 
