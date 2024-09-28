@@ -22,13 +22,15 @@
             <div class="comment-text">{{ comment.text }}</div>
 
             <button class="reply-button" @click="toggleReplyForm(comment)">
-              Reply
+              <i class="fas fa-reply"></i> Reply
             </button>
 
             <div v-if="activeComment === comment.id">
               <div class="reply-form">
                 <input v-model="replyText" placeholder="Your reply..." />
-                <button @click="submitReply(comment.id)">Send</button>
+                <button @click="submitReply(comment.id)">
+                  <i class="fas fa-paper-plane"></i> Send
+                </button>
               </div>
             </div>
 
@@ -53,7 +55,9 @@
 
       <form @submit.prevent="addComment" class="new-comment-form">
         <input v-model="newComment" placeholder="Write a comment..." />
-        <button type="submit">Send Comment</button>
+        <button type="submit">
+          <i class="fas fa-paper-plane"></i> Send Comment
+        </button>
       </form>
     </div>
   </div>
@@ -147,41 +151,67 @@ export default {
 </script>
 
 <style scoped>
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
 .comments-view {
-  max-width: 600px;
-  margin: 0 auto;
+  max-width: 700px;
+  margin: 40px auto;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .comment-list {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .comment-item {
   display: flex;
   padding: 15px 0;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #eee;
+}
+
+.comment-item:last-child {
+  border-bottom: none;
 }
 
 .comment-avatar img {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
+  margin-right: 15px;
 }
 
 .comment-content {
-  margin-left: 10px;
   flex-grow: 1;
 }
 
 .comment-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+
+.comment-header strong {
+  font-size: 16px;
+  font-weight: bold;
 }
 
 .comment-date {
-  color: #aaa;
+  color: #888;
   font-size: 0.9em;
+}
+
+.comment-text {
+  margin-top: 8px;
+  line-height: 1.5;
 }
 
 .reply-button {
@@ -189,6 +219,8 @@ export default {
   border: none;
   color: #007bff;
   cursor: pointer;
+  font-size: 0.9em;
+  margin-top: 10px;
 }
 
 .reply-button:hover {
@@ -196,12 +228,22 @@ export default {
 }
 
 .replies-list {
-  padding-left: 20px;
+  padding-left: 40px;
+  margin-top: 15px;
+  border-left: 2px solid #ddd;
+}
+
+.new-comment-form {
+  display: flex;
+  margin-top: 20px;
 }
 
 .new-comment-form input {
-  width: 80%;
+  flex-grow: 1;
   padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
   margin-right: 10px;
 }
 
@@ -210,7 +252,12 @@ export default {
   background-color: #007bff;
   color: white;
   border: none;
+  border-radius: 5px;
   cursor: pointer;
+}
+
+.new-comment-form button:hover {
+  background-color: #0056b3;
 }
 
 .reply-form {
@@ -218,16 +265,63 @@ export default {
 }
 
 .reply-form input {
-  width: 70%;
-  padding: 5px;
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
 }
 
 .reply-form button {
-  margin-left: 10px;
-  padding: 5px 10px;
+  margin-top: 10px;
+  padding: 8px 15px;
   background-color: #007bff;
   color: white;
   border: none;
+  border-radius: 5px;
   cursor: pointer;
+}
+
+.reply-form button:hover {
+  background-color: #0056b3;
+}
+
+.comment-item:hover {
+  background-color: #f7f7f7;
+}
+
+.comment-avatar {
+  display: flex;
+  align-items: center;
+}
+
+.comment-header .icons {
+  display: flex;
+  align-items: center;
+}
+
+.icons span {
+  margin-left: 10px;
+  font-size: 12px;
+  color: #888;
+}
+
+@media screen and (max-width: 768px) {
+  .comment-avatar img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .new-comment-form input {
+    font-size: 14px;
+  }
+
+  .comment-header strong {
+    font-size: 14px;
+  }
+
+  .comment-text {
+    font-size: 14px;
+  }
 }
 </style>
