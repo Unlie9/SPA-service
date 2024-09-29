@@ -1,4 +1,6 @@
-import { createApp } from 'vue'
-import App from './App.vue'
+import { createApp } from 'vue';
+import App from './App.vue';
+import router from './router';
 
-createApp(App).mount('#app')
+// Создание и монтирование приложения
+createApp(App).use(router).mount('#app');
