@@ -5,5 +5,5 @@ from comments.consumers import CommentConsumer
 app_name = "comments"
 
 websocket_urlpatterns = [
-    path("ws/comments", CommentConsumer.as_asgi()),
+    path("ws/comments/", CommentConsumer.as_asgi()),
 ]

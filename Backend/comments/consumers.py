@@ -1,6 +1,8 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from django.contrib.auth import get_user_model
+
 from comments.models import Comment
 from comments.serializers import CommentListSerializer
 
@@ -16,46 +18,41 @@ class CommentConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_discard(self.room_name, self.channel_name)
 
     @database_sync_to_async
-    def get_all_comments(self):
-        comments = Comment.objects.filter(reply=None)
-        return CommentListSerializer(comments, many=True).data
+    def get_comments_from_db(self):
+        return CommentListSerializer(
+            Comment.objects.filter(reply=None),
+            many=True,
+        ).data
 
     async def send_comments_list(self):
-        comments = await self.get_all_comments()
+        print(f"Отправляем комментарии: {await self.get_comments_from_db()}")
         await self.send(text_data=json.dumps({
-            'action': 'list_comments',
-            'comments': comments
+            "action": "list_comments",
+            "comments": await self.get_comments_from_db()
         }))
 
     async def receive(self, text_data=None, bytes_data=None):
-        data = json.loads(text_data)
-        action = data.get("action")
+        if text_data is not None:
+            data = json.loads(text_data)
+            if data.get("action") == "create_comment":
+                text = data.get("text")
+                if text:
+                    await self.create_comment(text)
+                    await self.send_comments_list()
 
-        if action == "create_comment":
-            text = data.get("text")
-            reply_id = data.get("reply")
+    async def create_comment(self, text):
+        user = self.scope["user"]
 
-            new_comment = await self.create_comment(text, reply_id)
-            await self.channel_layer.group_send(
-                self.room_name,
-                {
-                    'type': 'chat_message',
-                    'comment': new_comment
-                }
-            )
+        if hasattr(user, '_wrapped') and not user._wrapped:
+            user._setup()
 
-    @database_sync_to_async
-    def create_comment(self, text, reply_id=None):
-        comment = Comment.objects.create(
-            user=self.scope['user'],  # Здесь нужно заменить на текущего пользователя
-            text=text,
-            reply_id=reply_id
+        User = get_user_model()
+        real_user = await database_sync_to_async(User.objects.get)(id=user.id)
+
+        print(f"Текущий пользователь: {real_user}")
+
+        await database_sync_to_async(Comment.objects.create)(
+            user=real_user,
+            text=text
         )
-        return CommentListSerializer(comment).data
 
-    async def chat_message(self, event):
-        comment = event['comment']
-        await self.send(text_data=json.dumps({
-            'action': 'new_comment',
-            'comment': comment
-        }))

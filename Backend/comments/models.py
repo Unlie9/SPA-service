@@ -9,7 +9,7 @@ class Comment(models.Model):
         related_name="comments"
     )
     reply = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="replies")
-    # home_page = models.URLField(blank=True, null=True)
+    home_page = models.URLField(blank=True, null=True)
     text = models.CharField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
 
