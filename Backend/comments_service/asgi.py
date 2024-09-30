@@ -7,7 +7,7 @@ from channels.auth import AuthMiddlewareStack
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'comments_service.settings')
 django.setup()
 
-import routing
+from comments import routing
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),

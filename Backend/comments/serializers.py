@@ -7,7 +7,6 @@ from comments.models import Comment
 class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
     reply = serializers.PrimaryKeyRelatedField(queryset=Comment.objects.all(), required=False, allow_null=True)
-    # home_page = serializers.CharField(source="user.home_page")
 
     class Meta:
         model = Comment
@@ -19,14 +18,6 @@ class CommentSerializer(serializers.ModelSerializer):
         if isinstance(obj, Comment) and obj.replies.exists():
             return CommentSerializer(obj.replies.all(), many=True).data
         return None
-
-    # TODO think about making validation of html on client level
-    # @staticmethod
-    # def validate_text(attrs):
-    #     try:
-    #         return validate_html(attrs["text"])
-    #     except Exception:
-    #         raise ValidationError({"detail": "This html code cannot be used"})
 
 
 class CommentListSerializer(serializers.ModelSerializer):
