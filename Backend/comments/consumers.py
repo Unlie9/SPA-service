@@ -4,7 +4,7 @@ from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
 
 from comments.models import Comment
-from comments.serializers import CommentListSerializer
+from comments.serializers import CommentListSerializer, CommentSerializer
 
 
 class CommentConsumer(AsyncWebsocketConsumer):
@@ -45,16 +45,15 @@ class CommentConsumer(AsyncWebsocketConsumer):
                         }
                     )
 
-    async def create_comment(self, text):
+    async def create_comment(self, text, home_page=None):
         user = self.scope["user"]
 
         if user.is_authenticated:
             await database_sync_to_async(Comment.objects.create)(
                 user=user,
-                text=text
+                text=text,
+                home_page=home_page
             )
-        else:
-            print("Не удалось аутентифицировать пользователя")
 
     async def broadcast_comments(self, event):
         await self.send_comments_list()

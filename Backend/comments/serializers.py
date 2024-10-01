@@ -7,10 +7,11 @@ from comments.models import Comment
 class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
     reply = serializers.PrimaryKeyRelatedField(queryset=Comment.objects.all(), required=False, allow_null=True)
+    home_page = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = Comment
-        fields = ("id", "replies", "user", "text", "created_at", "reply")
+        fields = ("id", "replies", "user", "text", "created_at", "reply", "home_page")
         read_only_fields = ("user",)
 
     @staticmethod
@@ -22,7 +23,6 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class CommentListSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
-    home_page = serializers.CharField(source="user.home_page", read_only=True)
     replies = serializers.SerializerMethodField()
 
     class Meta:
