@@ -43,16 +43,11 @@ class CommentConsumer(AsyncWebsocketConsumer):
     async def create_comment(self, text):
         user = self.scope["user"]
 
-        if hasattr(user, '_wrapped') and not user._wrapped:
-            user._setup()
-
-        User = get_user_model()
-        real_user = await database_sync_to_async(User.objects.get)(id=user.id)
-
-        print(f"Текущий пользователь: {real_user}")
-
-        await database_sync_to_async(Comment.objects.create)(
-            user=real_user,
-            text=text
-        )
+        if user.is_authenticated:
+            await database_sync_to_async(Comment.objects.create)(
+                user=user,
+                text=text
+            )
+        else:
+            print("Не удалось аутентифицировать пользователя")
 

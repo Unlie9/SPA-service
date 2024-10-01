@@ -25,7 +25,7 @@ export default {
   methods: {
     connectWebSocket() {
       // Получаем токен из localStorage
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem('jwt');
 
       // Открываем WebSocket-соединение, добавив токен в параметры URL
       this.socket = new WebSocket(`${process.env.VUE_APP_WS_URL}/ws/comments/?token=${token}`);
