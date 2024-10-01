@@ -4,6 +4,7 @@
       <li v-for="comment in comments" :key="comment.id">
         <ul>
           <li>{{ comment.username }}</li>
+          <li>{{comment.email}}</li>
           <li>{{ formatDate(comment.created_at) }}</li>
           <li>{{ comment.text }}</li>
           <li>{{ comment.home_page ? comment.home_page : 'Empty' }}</li>
