@@ -36,8 +36,9 @@ class CommentConsumer(AsyncWebsocketConsumer):
             data = json.loads(text_data)
             if data.get("action") == "create_comment":
                 text = data.get("text")
+                home_page = data.get("home_page")
                 if text:
-                    await self.create_comment(text)
+                    await self.create_comment(text, home_page)
                     await self.channel_layer.group_send(
                         self.room_name,
                         {
@@ -57,4 +58,3 @@ class CommentConsumer(AsyncWebsocketConsumer):
 
     async def broadcast_comments(self, event):
         await self.send_comments_list()
-
