@@ -1,7 +1,5 @@
 <template>
   <div class="comments-page">
-    <h1 class="title">Test Chat</h1>
-
     <ul class="comments-list" ref="commentsList">
       <li v-for="comment in comments" :key="comment.id" class="comment-card" :class="{ 'new-comment': comment.isNew }">
         <div class="comment-header">
@@ -146,8 +144,8 @@ body {
   list-style: none;
   padding: 0;
   margin: 0 auto;
-  max-width: 600px;
-  max-height: 600px;
+  max-width: 100%;
+  max-height: 40%;
   overflow-y: auto;
 }
 
@@ -211,15 +209,14 @@ body {
 
 .comment-form {
   position: fixed;
-  bottom: 20px;
+  bottom: 1px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #fff;
+  background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
   padding: 20px;
-  border-radius: 50px;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
   width: 90%;
   max-width: 700px;
