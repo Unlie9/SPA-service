@@ -38,7 +38,12 @@ class CommentConsumer(AsyncWebsocketConsumer):
                 text = data.get("text")
                 if text:
                     await self.create_comment(text)
-                    await self.send_comments_list()
+                    await self.channel_layer.group_send(
+                        self.room_name,
+                        {
+                            "type": "broadcast_comments"
+                        }
+                    )
 
     async def create_comment(self, text):
         user = self.scope["user"]
@@ -50,4 +55,7 @@ class CommentConsumer(AsyncWebsocketConsumer):
             )
         else:
             print("Не удалось аутентифицировать пользователя")
+
+    async def broadcast_comments(self, event):
+        await self.send_comments_list()
 
