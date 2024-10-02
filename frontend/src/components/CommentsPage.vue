@@ -3,35 +3,33 @@
     <!-- Основной список комментариев -->
     <ul>
       <li v-for="comment in comments" :key="comment.id">
-        <!-- Отображение основного комментария -->
         <div class="comment-box">
           <strong>{{ comment.username }}</strong> ({{ formatDate(comment.created_at) }}):
           <p>{{ comment.text }}</p>
           <a v-if="comment.home_page" :href="comment.home_page">{{ comment.home_page }}</a>
           <br />
           <button @click="setReply(comment.id)">Ответить</button>
-        </div>
 
-        <!-- Отображение ответов на комментарий -->
-        <ul v-if="comment.replies && comment.replies.length > 0" class="reply-list">
-          <li v-for="reply in comment.replies" :key="reply.id">
-            <div class="reply-box">
-              <strong>{{ reply.username }}</strong> ({{ formatDate(reply.created_at) }}):
-              <p>{{ reply.text }}</p>
-              <a v-if="reply.home_page" :href="reply.home_page">{{ reply.home_page }}</a>
-              <br />
-              <button @click="setReply(reply.id)">Ответить</button>
-              <comment-list :comments="reply.replies"></comment-list>
-            </div>
-          </li>
-        </ul>
+          <!-- Отображение ответов для данного комментария -->
+          <ul v-if="comment.replies" class="reply-list">
+            <li v-for="reply in comment.replies" :key="reply.id">
+              <div class="reply-box">
+                <strong>{{ reply.username }}</strong> ({{ formatDate(reply.created_at) }}):
+                <p>{{ reply.text }}</p>
+                <a v-if="reply.home_page" :href="reply.home_page">{{ reply.home_page }}</a>
+                <br />
+                <button @click="setReply(reply.id)">Ответить</button>
+              </div>
+            </li>
+          </ul>
+        </div>
       </li>
     </ul>
 
     <!-- Форма для добавления нового комментария или ответа -->
     <form @submit.prevent="sendCommentOrReply" class="comment-form">
       <textarea v-model="newComment" placeholder="Напишите комментарий..." class="textarea"></textarea>
-      <input v-model="homePage" placeholder="Ваш сайт (опционально)" type="url" class="input"/>
+      <input v-model="homePage" placeholder="Ваш сайт (опционально)" type="url" class="input" />
 
       <!-- Индикация, что идет ответ на комментарий -->
       <div v-if="replyTo" class="reply-indicator">
@@ -47,16 +45,10 @@
 </template>
 
 <script>
-import CommentList from './CommentList.vue';  // Импортируем рекурсивный компонент
-
 export default {
-  components: {
-    CommentList  // Регистрируем компонент
-  },
   data() {
     return {
       comments: [],  // Основные комментарии
-      replies: [],   // Ответы на комментарии
       newComment: "",
       homePage: "",
       replyTo: null,  // ID комментария, на который отвечаем (если есть)
@@ -69,20 +61,14 @@ export default {
       this.socket = new WebSocket(`${process.env.VUE_APP_WS_URL}/ws/comments/?token=${token}`);
 
       this.socket.onopen = () => {
-        // Запрашиваем как комментарии, так и ответы при подключении
-        this.socket.send(JSON.stringify({action: "list_comments"}));
-        this.socket.send(JSON.stringify({action: "list_replies"}));
+        // Запрашиваем комментарии и ответы при подключении
+        this.socket.send(JSON.stringify({ action: "list_comments" }));
       };
 
       this.socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        console.log('WebSocket received data:', data);
-
         if (data.action === "list_comments") {
-          this.comments = data.comments; // Получаем основные комментарии
-        } else if (data.action === "list_replies") {
-          this.replies = data.replies || []; // Получаем ответы
-          console.log('Replies:', this.replies);
+          this.comments = data.comments;  // Основные комментарии с вложенными ответами
         }
       };
 
@@ -124,14 +110,6 @@ export default {
 
     cancelReply() {
       this.replyTo = null;  // Сбрасываем состояние ответа
-    },
-
-
-    getRepliesForComment(commentId) {
-      return this.replies ? this.replies.filter(reply => {
-        // Если поле reply содержит объект с id или это просто id
-        return reply.reply === commentId || (reply.reply && reply.reply.id === commentId);
-      }) : [];
     },
 
     formatDate(dateString) {

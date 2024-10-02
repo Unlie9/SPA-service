@@ -22,16 +22,16 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class CommentListSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
+    # replies = CommentSerializer(many=True, read_only=True)
     replies = serializers.SerializerMethodField()
     email = serializers.CharField(source="user.email", read_only=True)
 
     class Meta:
         model = Comment
-        # TODO remove id
         fields = ("id", "username", "home_page", "created_at", "text", "replies", "email")
 
     @staticmethod
     def get_replies(obj):
-        if obj.replies.exists():
-            return CommentListSerializer(obj.replies.all(), many=True).data
+        if isinstance(obj, Comment) and obj.replies.exists():
+            return CommentSerializer(obj.replies.all(), many=True).data
         return None
