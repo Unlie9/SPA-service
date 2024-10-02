@@ -3,7 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 
 from comments.models import Comment
-from comments.serializers import CommentListSerializer, CommentSerializer
+from comments.serializers import CommentListSerializer
 
 
 class CommentConsumer(AsyncWebsocketConsumer):
@@ -19,15 +19,27 @@ class CommentConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_comments_from_db(self):
         return CommentListSerializer(
-            Comment.objects.all(),
+            Comment.objects.filter(reply=None),
             many=True,
         ).data
 
+    @database_sync_to_async
+    def get_replies_from_db(self):
+        return CommentListSerializer(
+            Comment.objects.filter(reply__isnull=False),
+            many=True
+        ).data
+
     async def send_comments_list(self):
-        print(await self.get_comments_from_db())
         await self.send(text_data=json.dumps({
             "action": "list_comments",
-            "comments": await self.get_comments_from_db()
+            "comments": await self.get_comments_from_db(),
+        }))
+
+    async def send_replies_list(self):
+        await self.send(text_data=json.dumps({
+            "action": "list_replies",
+            "replies": await self.get_replies_from_db()
         }))
 
     async def receive(self, text_data=None, bytes_data=None):
@@ -80,3 +92,4 @@ class CommentConsumer(AsyncWebsocketConsumer):
 
     async def broadcast_comments(self, event):
         await self.send_comments_list()
+        await self.send_replies_list()
