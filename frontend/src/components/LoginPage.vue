@@ -31,19 +31,19 @@ export default {
   },
   methods: {
     async login() {
-      this.loading = true;  // Старт индикатора загрузки
-      this.error = null;    // Очистка ошибок
+      this.loading = true;
+      this.error = null;
       try {
         const response = await axios.post(`${process.env.VUE_APP_API_URL}/user/token/`, {
           username: this.username,
           password: this.password,
         });
-        localStorage.setItem('jwt', response.data.access);  // Сохранение токена
-        this.$router.push('/comments');  // Перенаправление
+        localStorage.setItem('jwt', response.data.access);
+        this.$router.push('/comments');
       } catch (error) {
         this.error = 'Login failed. Please check your credentials.';
       } finally {
-        this.loading = false;  // Остановка индикатора загрузки
+        this.loading = false;
       }
     },
   },
@@ -51,66 +51,79 @@ export default {
 </script>
 
 <style scoped>
-/* Убираем скролл и заставляем фон занимать всю высоту */
 html, body {
-  overflow: hidden; /* Полностью убираем скролл */
-  display: none;
-}
-
-/* Контейнер для всей страницы */
-.login-container {
-  min-height: 100vh; /* Занимаем 100% высоты экрана */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
-  font-family: 'Roboto', sans-serif;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100%;
   overflow: hidden;
 }
 
-.login-box {
-  background-color: white;
-  padding: 5%;
-  border-radius: 10px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  max-width: 30%;
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
   width: 100%;
-  text-align: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 0;
 }
 
-/* Заголовок */
+.login-box {
+  background-color: #fff;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 h1 {
   font-size: 2rem;
   color: #333;
+  margin-bottom: 20px;
+  font-family: 'Poppins', sans-serif;
 }
 
-/* Оформление полей формы */
 .input-group {
-  width: 94%;
-  margin-bottom: 5%;
+  margin-bottom: 20px;
 }
 
 input {
-  width: 100%; /* Занимаем всю ширину родителя */
-  padding: 3%; /* Используем проценты для отступов */
-  font-size: 1.1rem;
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
   border: 1px solid #ddd;
   border-radius: 5px;
   transition: all 0.3s ease;
+  font-family: 'Roboto', sans-serif;
 }
 
 input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+  border-color: #764ba2;
+  box-shadow: 0 0 10px rgba(118, 75, 162, 0.2);
   outline: none;
 }
 
 /* Кнопка */
 button {
-  width: 100%; /* Ширина кнопки равна ширине инпутов */
-  padding: 3%; /* Используем проценты для отступов */
-  background-color: #007bff;
-  color: white;
+  width: 100%;
+  padding: 12px;
+  background-color: #764ba2;
+  color: #fff;
   font-size: 1.1rem;
   border: none;
   border-radius: 5px;
@@ -119,27 +132,38 @@ button {
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: #5e3c96;
 }
 
 button:disabled {
-  background-color: #cccccc;
+  background-color: #ccc;
   cursor: not-allowed;
 }
 
-/* Сообщения об ошибке и загрузке */
 .error-msg {
   color: red;
-  margin-top: 5%;
+  margin-top: 15px;
+  font-size: 0.9rem;
 }
 
 .loading-msg {
   color: #007bff;
-  margin-top: 5%;
+  margin-top: 15px;
+  font-size: 0.9rem;
 }
 
-/* Плавные переходы для полей ввода */
-input {
-  transition: border-color 0.3s, box-shadow 0.3s;
+@media (max-width: 768px) {
+  .login-box {
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  input, button {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
 }
 </style>
