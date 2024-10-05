@@ -1,9 +1,13 @@
 import json
+import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-
+from django.core.cache import cache
 from comments.models import Comment
 from comments.serializers import CommentListSerializer
+
+
+logger = logging.getLogger(__name__)
 
 
 class CommentConsumer(AsyncWebsocketConsumer):
@@ -31,16 +35,40 @@ class CommentConsumer(AsyncWebsocketConsumer):
         ).data
 
     async def send_comments_list(self):
-        await self.send(text_data=json.dumps({
-            "action": "list_comments",
-            "comments": await self.get_comments_from_db(),
-        }))
+        if cache.get("comments_list"):
+            await self.send(text_data=json.dumps({
+                "action": "list_comments",
+                "comments": cache.get("comments_list")
+            }))
+        else:
+            cache.set(
+                "comments_list",
+                await self.get_comments_from_db(),
+                timeout=300
+            )
+
+            await self.send(text_data=json.dumps({
+                "action": "list_comments",
+                "comments": await self.get_comments_from_db(),
+            }))
 
     async def send_replies_list(self):
-        await self.send(text_data=json.dumps({
-            "action": "list_replies",
-            "replies": await self.get_replies_from_db()
-        }))
+        if cache.get("replies_list"):
+            await self.send(text_data=json.dumps({
+                "action": "list_comments",
+                "comments": cache.get("replies_list")
+            }))
+        else:
+            cache.set(
+                "replies_list",
+                await self.get_replies_from_db(),
+                timeout=300
+            )
+
+            await self.send(text_data=json.dumps({
+                "action": "list_replies",
+                "replies": await self.get_replies_from_db()
+            }))
 
     async def receive(self, text_data=None, bytes_data=None):
         if text_data is not None:
@@ -50,6 +78,7 @@ class CommentConsumer(AsyncWebsocketConsumer):
             if data.get("action") == "create_comment":
                 if text:
                     await self.create_comment(text, home_page)
+                    cache.delete("comments_list")
                     await self.channel_layer.group_send(
                         self.room_name,
                         {
@@ -60,6 +89,7 @@ class CommentConsumer(AsyncWebsocketConsumer):
                 reply_id = data.get("reply_id")
                 if text:
                     await self.reply_comment(text, home_page, reply_id)
+                    cache.delete("replies_list")
                     await self.channel_layer.group_send(
                         self.room_name,
                         {
