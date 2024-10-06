@@ -1,13 +1,9 @@
 import json
-import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.core.cache import cache
 from comments.models import Comment
 from comments.serializers import CommentListSerializer
-
-
-logger = logging.getLogger(__name__)
 
 
 class CommentConsumer(AsyncWebsocketConsumer):
@@ -16,9 +12,6 @@ class CommentConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(self.room_name, self.channel_name)
         await self.accept()
         await self.send_comments_list()
-
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.room_name, self.channel_name)
 
     @database_sync_to_async
     def get_comments_from_db(self):
