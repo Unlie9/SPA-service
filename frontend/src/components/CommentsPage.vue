@@ -30,7 +30,7 @@
             <ul v-if="comment.showReplies && comment.replies && comment.replies.length > 0" class="reply-list">
               <li v-for="reply in comment.replies" :key="reply.id" class="reply-item">
                 <div class="reply-box">
-                  <strong>Anonymous answer</strong> <span class="comment-date">{{ formatDate(reply.created_at) }}</span>:
+                  <strong>Аnonymous answer</strong> <span class="comment-date">{{ formatDate(reply.created_at) }}</span>:
                   <p>{{ reply.text }}</p>
                   <a v-if="reply.home_page" :href="reply.home_page" target="_blank" class="home-page-link">
                     {{ reply.home_page }}
@@ -83,6 +83,7 @@
 </template>
 
 <script>
+
 export default {
   data() {
     return {
@@ -185,6 +186,8 @@ export default {
       this.showHomepageModal = false;
       this.selectedComment = null;
     },
+
+
 
     formatDate(dateString) {
       const date = new Date(dateString);
