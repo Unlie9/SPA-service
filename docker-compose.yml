@@ -1,0 +1,68 @@
+services:
+  db:
+    image: postgres:16.0-alpine3.17
+    restart: always
+    env_file:
+      - backend/.env
+    environment:
+      POSTGRES_DB: ${POSTGRES_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+    env_file:
+      - backend/.env
+    command: sh -c "./entrypoint.sh"
+
+  daphne:
+    build:
+      context: ./backend
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
+      - redis
+    env_file:
+      - backend/.env
+    command: sh -c "daphne -p 8003 -b 0.0.0.0 comments_service.asgi:application"
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    ports:
+      - "5540:5540"
+    depends_on:
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
+    ports:
+      - "8080:8080"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
+volumes:
+  db_data:
