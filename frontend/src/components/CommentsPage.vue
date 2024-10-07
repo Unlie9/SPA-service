@@ -283,7 +283,6 @@ export default {
   margin-left: auto;
 }
 
-/* Аватар */
 .avatar {
   width: 40px;
   height: 40px;

@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'drf_spectacular',
-    'drf_recaptcha',
     'channels',
     
     'comments',
@@ -115,8 +114,6 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": False,
 }
 
-DRF_RECAPTCHA_SECRET_KEY = "Need to move .env"
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -144,16 +141,6 @@ CHANNEL_LAYERS = {
             "hosts": [(os.getenv('REDIS_HOST'), int(os.getenv('REDIS_PORT')))],
         },
     },
-}
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        "LOCATION": f"redis://{os.getenv('REDIS_HOST')}:{int(os.getenv('REDIS_PORT'))}/1",
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-    }
 }
 
 DATABASES = {
