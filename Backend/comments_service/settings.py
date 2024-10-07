@@ -109,7 +109,7 @@ SPECTACULAR_SETTINGS = {
 SIMPLE_JWT = {
     # TODO change ACCES TOKEN LIFETIME
     "ACCESS_TOKEN_LIFETIME": timedelta(
-        minutes=int(os.getenv("ACCESS_TOKEN_LIFETIME", 5))
+        hours=int(os.getenv("ACCESS_TOKEN_LIFETIME", 5))
     ),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=3),
     "ROTATE_REFRESH_TOKENS": False,
