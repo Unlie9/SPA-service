@@ -1,11 +1,11 @@
 services:
   db:
-    image: postgres:16.0-alpine3.17
+    image: postgres:16.1
     restart: always
     environment:
-      - POSTGRES_DB=spa
-      - POSTGRES_USER=spa_user
-      - POSTGRES_PASSWORD=spa_password
+      - POSTGRES_DB=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
     ports:
       - $POSTGRES_PORT:5432
