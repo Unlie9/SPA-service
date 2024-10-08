@@ -15,7 +15,6 @@ This project demonstrates the integration of a modern SPA frontend with a powerf
 - **Redis**: for channel layer binding in WebSockets, ensuring efficient real-time message distribution.
 - **Docker**: for containerized , ensuring easy scalability and consistent development environments.
 - **Deploy**: AWS hosts the application for cloud-based deployment, while Nginx serves as the reverse proxy to efficiently handle static files and requests.
-- **Docker**: for containerized , ensuring easy scalability and consistent development environments.
 
 
 1. **Clone the repository**:
