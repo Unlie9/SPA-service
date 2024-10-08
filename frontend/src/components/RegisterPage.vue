@@ -4,13 +4,13 @@
       <h1>Register</h1>
       <form @submit.prevent="register">
         <div class="input-group">
-          <input v-model="username" placeholder="Username" />
+          <input v-model="username" placeholder="Username"/>
         </div>
         <div class="input-group">
-          <input v-model="email" placeholder="Email" />
+          <input v-model="email" placeholder="Email"/>
         </div>
         <div class="input-group">
-          <input type="password" v-model="password" placeholder="Password" />
+          <input type="password" v-model="password" placeholder="Password"/>
         </div>
         <button type="submit">Register</button>
       </form>

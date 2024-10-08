@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from comments.models import Comment
 
 
@@ -21,7 +22,6 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class CommentListSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
-    # replies = CommentSerializer(many=True, read_only=True)
     replies = serializers.SerializerMethodField()
     email = serializers.CharField(source="user.email", read_only=True)
 

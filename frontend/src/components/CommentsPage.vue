@@ -11,7 +11,8 @@
               <div class="comment-actions">
                 <button @click="toggleEmailModal(comment)" class="info-button">Email</button>
                 <button @click="handleHomepage(comment)" class="info-button">Homepage</button>
-                <button @click="setReply(comment.id, comment.username, comment.text)" class="reply-button">Reply</button>
+                <button @click="setReply(comment.id, comment.username, comment.text)" class="reply-button">Reply
+                </button>
               </div>
             </div>
 
@@ -105,7 +106,7 @@ export default {
       this.socket = new WebSocket(`${process.env.VUE_APP_WS_URL}/ws/comments/?token=${token}`);
 
       this.socket.onopen = () => {
-        this.socket.send(JSON.stringify({ action: "list_comments" }));
+        this.socket.send(JSON.stringify({action: "list_comments"}));
       };
 
       this.socket.onmessage = (event) => {
@@ -186,7 +187,6 @@ export default {
       this.showHomepageModal = false;
       this.selectedComment = null;
     },
-
 
 
     formatDate(dateString) {

@@ -4,10 +4,10 @@
       <h1>Login</h1>
       <form @submit.prevent="login">
         <div class="input-group">
-          <input v-model="username" placeholder="Username" />
+          <input v-model="username" placeholder="Username"/>
         </div>
         <div class="input-group">
-          <input type="password" v-model="password" placeholder="Password" />
+          <input type="password" v-model="password" placeholder="Password"/>
         </div>
         <button type="submit" :disabled="loading">Login</button>
       </form>
