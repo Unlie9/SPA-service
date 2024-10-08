@@ -1,24 +1,21 @@
+version: '3'
 services:
   db:
-    image: postgres:16.1
+    image: unlie9/spa_service_postgres:latest
     restart: always
     environment:
       - POSTGRES_DB=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-
     ports:
-      - $POSTGRES_PORT:5432
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
 
   backend:
-    build:
-      context: ./backend
+    image: unlie9/spa_service_backend:latest
     ports:
       - "8002:8002"
-    volumes:
-      - ./backend:/app
     depends_on:
       - db
     env_file:
@@ -26,12 +23,9 @@ services:
     command: sh -c "./entrypoint.sh"
 
   daphne:
-    build:
-      context: ./backend
+    image: unlie9/spa_service_daphne:latest
     ports:
       - "8003:8003"
-    volumes:
-      - ./backend:/app
     depends_on:
       - backend
       - redis
@@ -40,15 +34,12 @@ services:
     command: sh -c "daphne -p 8003 -b 0.0.0.0 comments_service.asgi:application"
 
   redis:
-    image: redis:alpine
+    image: unlie9/spa_service_redis:latest
     ports:
       - "6379:6379"
 
   frontend:
-    build:
-      context: ./frontend
-    volumes:
-      - ./frontend:/app
+    image: unlie9/spa_service_frontend:latest
     depends_on:
       - backend
     ports:
@@ -57,7 +48,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
 
   nginx:
-    image: nginx:latest
+    image: unlie9/spa_service_nginx:latest
     depends_on:
       - frontend
       - daphne
@@ -65,7 +56,6 @@ services:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-
 
 volumes:
   db_data:
