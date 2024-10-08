@@ -2,8 +2,6 @@
 ### Description
 SPA-Service is a full-stack single-page application (SPA) designed to provide a smooth, real-time user experience by leveraging modern web technologies. The project seamlessly integrates the following technologies:
 
-This project demonstrates the integration of a modern SPA frontend with a powerful Django backend, utilizing real-time capabilities and cloud infrastructure to deliver a production-ready solution.
-
 ## Features
 
 - **Django**: backend framework, offering a robust and scalable architecture for server-side logic.
@@ -15,6 +13,8 @@ This project demonstrates the integration of a modern SPA frontend with a powerf
 - **Redis**: for channel layer binding in WebSockets, ensuring efficient real-time message distribution.
 - **Docker**: for containerized , ensuring easy scalability and consistent development environments.
 - **Deploy**: AWS hosts the application for cloud-based deployment, while Nginx serves as the reverse proxy to efficiently handle static files and requests.
+
+This project demonstrates the integration of a modern SPA frontend with a powerful Django backend, utilizing real-time capabilities and cloud infrastructure to deliver a production-ready solution.
 
 
 1. **Clone the repository**:
