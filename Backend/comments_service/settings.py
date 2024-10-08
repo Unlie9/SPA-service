@@ -68,11 +68,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS_ALLOWED_ORIGINS = [
-#     'http://localhost:8080',
-#     'http://127.0.0.1:8080'
-# ]
-
 CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_HEADERS = [
@@ -124,7 +119,6 @@ SPECTACULAR_SETTINGS = {
 }
 
 SIMPLE_JWT = {
-    # TODO change ACCES TOKEN LIFETIME
     "ACCESS_TOKEN_LIFETIME": timedelta(
         hours=int(os.getenv("ACCESS_TOKEN_LIFETIME", 5))
     ),
