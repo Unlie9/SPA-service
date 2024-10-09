@@ -1,7 +1,7 @@
 version: '3'
 services:
   db:
-    image: unlie9/spa_service_postgres:latest
+    image: postgres:16.1
     restart: always
     environment:
       - POSTGRES_DB=${POSTGRES_NAME}
