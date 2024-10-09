@@ -27,15 +27,23 @@
                     @click="toggleReplies(comment)" class="hide-replies-button">
               Hide comments
             </button>
-
-            <ul v-if="comment.showReplies && comment.replies && comment.replies.length > 0" class="reply-list">
+            <ul v-if="comment.replies && comment.replies.length > 0" class="reply-list">
               <li v-for="reply in comment.replies" :key="reply.id" class="reply-item">
                 <div class="reply-box">
-                  <strong>Аnonymous answer</strong> <span class="comment-date">{{ formatDate(reply.created_at) }}</span>:
+                  <strong>{{ reply.username }}</strong>
+                  <span class="comment-date">{{ formatDate(reply.created_at) }}</span>:
                   <p>{{ reply.text }}</p>
-                  <a v-if="reply.home_page" :href="reply.home_page" target="_blank" class="home-page-link">
-                    {{ reply.home_page }}
-                  </a>
+                  <a v-if="reply.home_page" :href="reply.home_page" target="_blank">{{ reply.home_page }}</a>
+                  <!-- Рекурсивный вызов для рендеринга вложенных ответов -->
+                  <ul v-if="reply.replies && reply.replies.length > 0">
+                    <li v-for="nestedReply in reply.replies" :key="nestedReply.id" class="nested-reply-item">
+                      <div class="nested-reply-box">
+                        <strong>{{ nestedReply.username }}</strong>
+                        <span class="comment-date">{{ formatDate(nestedReply.created_at) }}</span>:
+                        <p>{{ nestedReply.text }}</p>
+                      </div>
+                    </li>
+                  </ul>
                 </div>
               </li>
             </ul>

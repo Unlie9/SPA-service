@@ -1,7 +1,6 @@
-version: '3'
 services:
   db:
-    image: unlie9/spa_service_postgres:latest
+    image: postgres:16.1
     restart: always
     environment:
       - POSTGRES_DB=${POSTGRES_NAME}
@@ -13,9 +12,12 @@ services:
       - db_data:/var/lib/postgresql/data
 
   backend:
-    image: unlie9/spa_service_backend:latest
+    build:
+      context: ./backend
     ports:
       - "8002:8002"
+    volumes:
+      - ./backend:/app
     depends_on:
       - db
     env_file:
@@ -23,9 +25,12 @@ services:
     command: sh -c "./entrypoint.sh"
 
   daphne:
-    image: unlie9/spa_service_daphne:latest
+    build:
+      context: ./backend
     ports:
       - "8003:8003"
+    volumes:
+      - ./backend:/app
     depends_on:
       - backend
       - redis
@@ -34,12 +39,15 @@ services:
     command: sh -c "daphne -p 8003 -b 0.0.0.0 comments_service.asgi:application"
 
   redis:
-    image: unlie9/spa_service_redis:latest
+    image: redis:alpine
     ports:
       - "6379:6379"
 
   frontend:
-    image: unlie9/spa_service_frontend:latest
+    build:
+      context: ./frontend
+    volumes:
+      - ./frontend:/app
     depends_on:
       - backend
     ports:
@@ -48,7 +56,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
 
   nginx:
-    image: unlie9/spa_service_nginx:latest
+    image: nginx:latest
     depends_on:
       - frontend
       - daphne
