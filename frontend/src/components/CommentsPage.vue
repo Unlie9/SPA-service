@@ -2,70 +2,42 @@
   <div class="comments-container">
     <div class="comments-section">
       <ul class="comments-list">
-        <li v-for="comment in comments" :key="comment.id" class="comment-item">
-          <div class="comment-box">
-            <div class="comment-header">
-              <div class="avatar">{{ comment.username.charAt(0).toUpperCase() }}</div>
-              <strong class="comment-username">{{ comment.username }}</strong>
-              <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
-              <div class="comment-actions">
-                <button @click="setReply(comment.id, comment.username, comment.text)" class="reply-button">Reply</button>
-              </div>
-            </div>
-
-            <p class="comment-text">{{ comment.text }}</p>
-
-            <!-- Вложенные комментарии -->
-            <ul v-if="comment.replies && comment.replies.length > 0" class="reply-list">
-              <li v-for="reply in comment.replies" :key="reply.id" class="reply-item">
-                <div class="reply-box">
-                  <strong>{{ reply.username }}</strong>
-                  <span class="comment-date">{{ formatDate(reply.created_at) }}</span>:
-                  <p>{{ reply.text }}</p>
-                  <button @click="setReply(reply.id, reply.username, reply.text)" class="reply-button">Reply</button>
-
-                  <!-- Рекурсивное отображение вложенных ответов -->
-                  <ul v-if="reply.replies && reply.replies.length > 0" class="reply-list">
-                    <li v-for="nestedReply in reply.replies" :key="nestedReply.id" class="reply-item">
-                      <div class="reply-box">
-                        <strong>{{ nestedReply.username }}</strong>
-                        <span class="comment-date">{{ formatDate(nestedReply.created_at) }}</span>:
-                        <p>{{ nestedReply.text }}</p>
-                        <button @click="setReply(nestedReply.id, nestedReply.username, nestedReply.text)" class="reply-button">Reply</button>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </li>
+        <comment-item
+          v-for="comment in comments"
+          :key="comment.id"
+          :comment="comment"
+          @reply="setReply"
+        />
       </ul>
-
-      <!-- Форма для добавления комментария с отступом -->
-      <form @submit.prevent="sendCommentOrReply" class="comment-form">
-        <textarea v-model="newComment" placeholder="Write a message..." class="textarea"></textarea>
-        <input v-model="homePage" placeholder="Your website (optional)" type="url" class="input"/>
-
-        <div v-if="replyTo" class="reply-indicator">
-          <span class="replying-text">
-            Replying to "{{ replyToUsername }}" comment
-            <br>
-            "{{ replyToText }}"
-          </span>
-          <button @click="cancelReply" class="cancel-reply">Cancel</button>
-        </div>
-
-        <button type="submit" class="submit-button">
-          {{ replyTo ? 'Reply' : 'Make a Post' }}
-        </button>
-      </form>
     </div>
+
+    <form @submit.prevent="sendCommentOrReply" class="fixed-comment-form">
+      <textarea v-model="newComment" placeholder="Write a message..." class="textarea"></textarea>
+      <input v-model="homePage" placeholder="Your website (optional)" type="url" class="input"/>
+
+      <div v-if="replyTo" class="reply-indicator">
+        <span class="replying-text">
+          Replying to "{{ replyToUsername }}" comment
+          <br>
+          "{{ replyToText }}"
+        </span>
+        <button @click="cancelReply" class="cancel-reply">Cancel</button>
+      </div>
+
+      <button type="submit" class="submit-button">
+        {{ replyTo ? 'Reply' : 'Make a Post' }}
+      </button>
+    </form>
   </div>
 </template>
 
 <script>
+import CommentItem from './CommentItem.vue';
+
 export default {
+  components: {
+    CommentItem
+  },
   data() {
     return {
       comments: [],
@@ -104,20 +76,18 @@ export default {
 
     sendCommentOrReply() {
       if (this.newComment.trim()) {
-        // Убираем условие с action "reply_comment"
         const payload = {
-          action: "create_comment",  // Всегда используем "create_comment"
+          action: "create_comment",
           text: this.newComment,
           home_page: this.homePage
         };
 
         if (this.replyTo) {
-          payload.reply_id = this.replyTo;  // Если это ответ, добавляем reply_id
+          payload.reply_id = this.replyTo;
         }
 
         this.socket.send(JSON.stringify(payload));
 
-        // Сбрасываем поля после отправки
         this.newComment = "";
         this.homePage = "";
         this.replyTo = null;
@@ -137,16 +107,6 @@ export default {
       this.replyToUsername = null;
       this.replyToText = null;
     },
-
-    formatDate(dateString) {
-      const date = new Date(dateString);
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = String(date.getFullYear()).slice(2);
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `${day}.${month}.${year} at ${hours}:${minutes}`;
-    }
   },
   mounted() {
     this.connectWebSocket();
@@ -163,84 +123,34 @@ export default {
 
 .comments-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  width: 100%;
+  flex-direction: column;
+  height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 0;
-  overflow: hidden;
 }
 
 .comments-section {
+  flex: 1;
   background-color: #fff;
   padding: 40px;
   border-radius: 10px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 800px;
-  height: 80vh;
   overflow-y: auto;
-  position: relative;
 }
 
-.comments-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 20px 0;
-}
-
-.comment-item {
-  margin-bottom: 20px;
-}
-
-.comment-box {
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 20px;
-  border: 1px solid #ddd;
-  text-align: left;
-  word-wrap: break-word;
-}
-
-.comment-header {
+.fixed-comment-form {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  padding: 10px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-}
-
-.comment-username {
-  font-size: 1.2rem;
-  color: #333;
-}
-
-.comment-date {
-  font-size: 0.9rem;
-  color: #777;
-}
-
-.comment-text {
-  margin: 15px 0;
-  font-size: 1rem;
-  color: #444;
-}
-
-.comment-actions {
-  display: flex;
-  gap: 10px;
-  margin-left: auto;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  background-color: #007bff;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
 }
 
 .textarea, .input {
@@ -250,10 +160,9 @@ export default {
   border-radius: 5px;
   border: 1px solid #ddd;
   font-size: 1.1rem;
-  font-family: 'Roboto', sans-serif;
   word-wrap: break-word;
   resize: none;
-  max-height: 200px;
+  max-height: 100px;
   overflow-y: auto;
 }
 
@@ -283,7 +192,7 @@ export default {
   margin-bottom: 10px;
 }
 
-.comment-form {
-  margin-top: 30px; /* Отступ перед формой */
+.reply-indicator {
+  margin-bottom: 10px;
 }
 </style>
