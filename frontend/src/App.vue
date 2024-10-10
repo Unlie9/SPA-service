@@ -13,7 +13,6 @@ export default {
 <style src="@/assets/global.css"></style>
 
 <style scoped>
-
 .app-container {
   min-height: 100vh;
   display: flex;
@@ -65,3 +64,4 @@ export default {
   }
 }
 </style>
+

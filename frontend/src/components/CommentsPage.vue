@@ -1,33 +1,62 @@
 <template>
   <div class="comments-container">
-    <div class="comments-section">
+    <div class="comments-section" ref="commentsSection">
       <ul class="comments-list">
         <comment-item
           v-for="comment in comments"
           :key="comment.id"
           :comment="comment"
           @reply="setReply"
+          @showEmail="openEmailModal"
+          @showHomepage="openHomepageModal"
         />
       </ul>
     </div>
 
-    <form @submit.prevent="sendCommentOrReply" class="fixed-comment-form">
-      <textarea v-model="newComment" placeholder="Write a message..." class="textarea"></textarea>
-      <input v-model="homePage" placeholder="Your website (optional)" type="url" class="input"/>
-
+    <form @submit.prevent="sendCommentOrReply" class="comment-form">
       <div v-if="replyTo" class="reply-indicator">
         <span class="replying-text">
-          Replying to "{{ replyToUsername }}" comment
-          <br>
+          Replying to "{{ replyToUsername }}" comment:
+          <br />
           "{{ replyToText }}"
         </span>
         <button @click="cancelReply" class="cancel-reply">Cancel</button>
       </div>
 
+      <textarea v-model="newComment" placeholder="Write a message..." class="textarea"></textarea>
+
+      <!-- Поле для Home Page -->
+      <input
+        v-model="homePage"
+        type="url"
+        placeholder="Your home page (optional)"
+        class="input"
+      />
+
       <button type="submit" class="submit-button">
-        {{ replyTo ? 'Reply' : 'Make a Post' }}
+        {{ replyTo ? 'Reply' : 'Post Comment' }}
       </button>
     </form>
+
+    <!-- Модальное окно для Email -->
+    <div v-if="showEmailModal" class="modal">
+      <div class="modal-content">
+        <h3>Email</h3>
+        <p>{{ selectedComment.email }}</p>
+        <button @click="closeModal" class="close-button">Close</button>
+      </div>
+    </div>
+
+    <div v-if="showHomepageModal" class="modal">
+      <div class="modal-content">
+        <h3>Homepage</h3>
+        <p v-if="selectedComment.home_page">
+          <a :href="selectedComment.home_page" target="_blank">{{ selectedComment.home_page }}</a>
+        </p>
+        <p v-else>The user did not specify homepage</p>
+        <button @click="closeModal" class="close-button">Close</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -36,17 +65,20 @@ import CommentItem from './CommentItem.vue';
 
 export default {
   components: {
-    CommentItem
+    CommentItem,
   },
   data() {
     return {
       comments: [],
-      newComment: "",
-      homePage: "",
+      newComment: '',
+      homePage: '',
       replyTo: null,
       replyToUsername: null,
       replyToText: null,
       socket: null,
+      showEmailModal: false,
+      showHomepageModal: false,
+      selectedComment: null,
     };
   },
   methods: {
@@ -55,31 +87,31 @@ export default {
       this.socket = new WebSocket(`${process.env.VUE_APP_WS_URL}/ws/comments/?token=${token}`);
 
       this.socket.onopen = () => {
-        this.socket.send(JSON.stringify({ action: "list_comments" }));
+        this.socket.send(JSON.stringify({ action: 'list_comments' }));
       };
 
       this.socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        if (data.action === "list_comments") {
+        if (data.action === 'list_comments') {
           this.comments = data.comments;
         }
       };
 
       this.socket.onerror = (error) => {
-        console.error("WebSocket error:", error);
+        console.error('WebSocket error:', error);
       };
 
       this.socket.onclose = () => {
-        console.log("WebSocket disconnected");
+        console.log('WebSocket disconnected');
       };
     },
 
     sendCommentOrReply() {
       if (this.newComment.trim()) {
         const payload = {
-          action: "create_comment",
+          action: 'create_comment',
           text: this.newComment,
-          home_page: this.homePage
+          home_page: this.homePage || null,
         };
 
         if (this.replyTo) {
@@ -88,24 +120,53 @@ export default {
 
         this.socket.send(JSON.stringify(payload));
 
-        this.newComment = "";
-        this.homePage = "";
+        this.newComment = '';
+        this.homePage = '';
         this.replyTo = null;
         this.replyToUsername = null;
         this.replyToText = null;
+
+        this.$nextTick(() => {
+          this.scrollToBottom();
+        });
       }
     },
 
     setReply(commentId, username, text) {
       this.replyTo = commentId;
       this.replyToUsername = username;
-      this.replyToText = text.slice(0, 20) + (text.length > 20 ? "..." : "");
+      this.replyToText = text.slice(0, 50) + (text.length > 50 ? '...' : '');
     },
 
     cancelReply() {
       this.replyTo = null;
       this.replyToUsername = null;
       this.replyToText = null;
+    },
+
+    scrollToBottom() {
+      const commentsSection = this.$refs.commentsSection;
+      commentsSection.scrollTop = commentsSection.scrollHeight;
+    },
+
+    openEmailModal(comment) {
+      this.selectedComment = comment;
+      this.showEmailModal = true;
+    },
+
+    openHomepageModal(comment) {
+      this.selectedComment = comment;
+      if (!comment.home_page) {
+        this.showHomepageModal = true;
+      } else {
+        window.open(comment.home_page, "_blank");
+      }
+    },
+
+    closeModal() {
+      this.showEmailModal = false;
+      this.showHomepageModal = false;
+      this.selectedComment = null;
     },
   },
   mounted() {
@@ -115,84 +176,130 @@ export default {
     if (this.socket) {
       this.socket.close();
     }
-  }
+  },
 };
 </script>
 
 <style scoped>
-
 .comments-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  align-items: center;
+  width: 100%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 0;
+  height: 100vh;
 }
 
 .comments-section {
-  flex: 1;
+  width: 100%;
+  max-width: 80%;
+  height: 100%;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding-right: 10px;
+}
+
+.comments-list {
+  padding: 0;
+  list-style: none;
+  margin: 0;
+}
+
+.comment-form {
   background-color: #fff;
-  padding: 40px;
+  padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   width: 100%;
-  max-width: 800px;
-  overflow-y: auto;
-}
-
-.fixed-comment-form {
-  position: fixed;
+  max-width: 47%;
+  position: sticky;
   bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: #fff;
-  padding: 10px;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
-.textarea, .input {
+.textarea {
   width: 100%;
-  margin-bottom: 10px;
-  padding: 16px;
-  border-radius: 5px;
+  padding: 12px;
   border: 1px solid #ddd;
-  font-size: 1.1rem;
-  word-wrap: break-word;
-  resize: none;
-  max-height: 100px;
-  overflow-y: auto;
+  border-radius: 8px;
+  resize: vertical;
+  min-height: 80px;
+  margin-bottom: 15px;
+  font-size: 1rem;
+}
+
+.input {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 15px;
 }
 
 .submit-button {
-  background-color: #764ba2;
+  background-color: #5e60ce;
   color: white;
-  padding: 16px;
+  font-size: 1rem;
+  padding: 12px;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
   width: 100%;
+  transition: background-color 0.3s;
 }
 
 .submit-button:hover {
-  background-color: #5e3c96;
-}
-
-.reply-list {
-  padding-left: 20px;
-  margin-top: 15px;
-}
-
-.reply-box {
-  background-color: #f0f0f0;
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 10px;
+  background-color: #4a47a3;
 }
 
 .reply-indicator {
-  margin-bottom: 10px;
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-left: 4px solid #5e60ce;
+  margin-bottom: 15px;
+}
+
+.cancel-reply {
+  background: none;
+  border: none;
+  color: red;
+  cursor: pointer;
+  margin-left: 10px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 40px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.close-button {
+  background-color: #ff4d4d;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.close-button:hover {
+  background-color: #ff1a1a;
 }
 </style>
