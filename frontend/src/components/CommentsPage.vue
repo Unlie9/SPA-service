@@ -1,32 +1,46 @@
 <template>
   <div class="comments-container">
+    <div class="sort-controls">
+      <label for="sort-by">Sort by:</label>
+      <select id="sort-by" v-model="sortBy" @change="requestComments(1)">
+        <option value="username">User Name</option>
+        <option value="email">E-mail</option>
+        <option value="date">Date</option>
+      </select>
+
+      <label for="sort-order">Order:</label>
+      <select id="sort-order" v-model="sortOrder" @change="requestComments(1)">
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
+      </select>
+    </div>
+
     <div class="comments-section" ref="commentsSection">
       <ul class="comments-list">
         <comment-item
-          v-for="comment in comments"
-          :key="comment.id"
-          :comment="comment"
-          @reply="setReply"
-          @showEmail="openEmailModal"
-          @showHomepage="openHomepageModal"
+            v-for="comment in comments"
+            :key="comment.id"
+            :comment="comment"
+            @reply="setReply"
+            @showEmail="openEmailModal"
+            @showHomepage="openHomepageModal"
         />
       </ul>
     </div>
 
-    <div class="form-pagination-container">
-      <div class="pagination-controls">
-        <button @click="previousPage" :disabled="currentPage === 1" class="pagination-button">Previous</button>
-        <span class="pagination-text">Page {{ currentPage }} of {{ totalPages }}</span>
-        <button @click="nextPage" :disabled="currentPage === totalPages" class="pagination-button">Next</button>
-        <button @click="goToLastPage" :disabled="currentPage === totalPages" class="pagination-button">Last Page</button>
-      </div>
-
-      <form @submit.prevent="sendCommentOrReply" class="comment-form">
-        <textarea v-model="newComment" placeholder="Write a message..." class="textarea"></textarea>
-        <input v-model="homePage" type="url" placeholder="Your home page (optional)" class="input" />
-        <button type="submit" class="submit-button">{{ replyTo ? 'Reply' : 'Post Comment' }}</button>
-      </form>
+    <!-- Пагинация -->
+    <div class="pagination-controls">
+      <button @click="previousPage" :disabled="currentPage === 1" class="pagination-button">Previous</button>
+      <span class="pagination-text">Page {{ currentPage }} of {{ totalPages }}</span>
+      <button @click="nextPage" :disabled="currentPage === totalPages" class="pagination-button">Next</button>
+      <button @click="goToLastPage" :disabled="currentPage === totalPages" class="pagination-button">Last Page</button>
     </div>
+
+    <form @submit.prevent="sendCommentOrReply" class="comment-form">
+      <textarea v-model="newComment" placeholder="Write a message..." class="textarea"></textarea>
+      <input v-model="homePage" type="url" placeholder="Your home page (optional)" class="input"/>
+      <button type="submit" class="submit-button">{{ replyTo ? 'Reply' : 'Post Comment' }}</button>
+    </form>
 
     <!-- Модальные окна для Email и Homepage -->
     <div v-if="showEmailModal" class="modal">
@@ -68,6 +82,8 @@ export default {
       currentPage: 1,
       totalPages: 1,
       pageSize: 25,
+      sortBy: 'date',
+      sortOrder: 'desc',
       selectedComment: null,
       showEmailModal: false,
       showHomepageModal: false,
@@ -110,7 +126,9 @@ export default {
       this.socket.send(JSON.stringify({
         action: 'list_comments',
         page: page,
-        page_size: this.pageSize
+        page_size: this.pageSize,
+        sort_by: this.sortBy,
+        sort_order: this.sortOrder
       }));
     },
 
@@ -241,15 +259,6 @@ export default {
   margin: 0;
 }
 
-.form-pagination-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 80%;
-}
-
 .comment-form {
   background-color: #fff;
   padding: 20px;
@@ -257,7 +266,8 @@ export default {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   width: 100%;
   max-width: 47%;
-  margin-bottom: 20px;
+  position: sticky;
+  bottom: 0;
 }
 
 .textarea {
@@ -296,35 +306,21 @@ export default {
   background-color: #4a47a3;
 }
 
-.pagination-controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
+.reply-indicator {
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-left: 4px solid #5e60ce;
+  margin-bottom: 15px;
 }
 
-.pagination-button {
-  background-color: #5e60ce;
-  color: white;
-  padding: 10px 20px;
+.cancel-reply {
+  background: none;
   border: none;
-  border-radius: 8px;
+  color: red;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.pagination-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.pagination-button:hover:not(:disabled) {
-  background-color: #4a47a3;
-}
-
-.pagination-text {
-  font-size: 1rem;
+  margin-left: 10px;
+  font-size: 0.9rem;
+  font-weight: bold;
 }
 
 .modal {
@@ -360,4 +356,43 @@ export default {
 .close-button:hover {
   background-color: #ff1a1a;
 }
+
+.sort-controls {
+  margin-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.pagination-button {
+  background-color: #5e60ce;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.pagination-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #4a47a3;
+}
+
+.pagination-text {
+  font-size: 1rem;
+}
+
 </style>
