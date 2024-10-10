@@ -25,7 +25,6 @@
 
       <textarea v-model="newComment" placeholder="Write a message..." class="textarea"></textarea>
 
-      <!-- Поле для Home Page -->
       <input
         v-model="homePage"
         type="url"
@@ -38,7 +37,6 @@
       </button>
     </form>
 
-    <!-- Модальное окно для Email -->
     <div v-if="showEmailModal" class="modal">
       <div class="modal-content">
         <h3>Email</h3>
@@ -69,31 +67,37 @@ export default {
   },
   data() {
     return {
-      comments: [],
       newComment: '',
       homePage: '',
       replyTo: null,
       replyToUsername: null,
       replyToText: null,
       socket: null,
+      comments: [],
+      selectedComment: null,
       showEmailModal: false,
       showHomepageModal: false,
-      selectedComment: null,
     };
   },
   methods: {
     connectWebSocket() {
       const token = localStorage.getItem('jwt');
+      console.log('Attempting to connect to WebSocket with token:', token);
+
       this.socket = new WebSocket(`${process.env.VUE_APP_WS_URL}/ws/comments/?token=${token}`);
 
       this.socket.onopen = () => {
+        console.log('WebSocket connected');
         this.socket.send(JSON.stringify({ action: 'list_comments' }));
       };
 
       this.socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
+        console.log('Received message from WebSocket:', data);
+
         if (data.action === 'list_comments') {
           this.comments = data.comments;
+          console.log('Comments updated:', this.comments);
         }
       };
 
@@ -118,6 +122,7 @@ export default {
           payload.reply_id = this.replyTo;
         }
 
+        console.log('Sending comment payload:', payload);
         this.socket.send(JSON.stringify(payload));
 
         this.newComment = '';
@@ -136,30 +141,36 @@ export default {
       this.replyTo = commentId;
       this.replyToUsername = username;
       this.replyToText = text.slice(0, 50) + (text.length > 50 ? '...' : '');
+      console.log('Replying to comment:', this.replyTo, this.replyToUsername);
     },
 
     cancelReply() {
       this.replyTo = null;
       this.replyToUsername = null;
       this.replyToText = null;
+      console.log('Reply cancelled');
     },
 
     scrollToBottom() {
       const commentsSection = this.$refs.commentsSection;
       commentsSection.scrollTop = commentsSection.scrollHeight;
+      console.log('Scrolled to bottom');
     },
 
     openEmailModal(comment) {
       this.selectedComment = comment;
       this.showEmailModal = true;
+      console.log('Email modal opened for comment:', comment);
     },
 
     openHomepageModal(comment) {
       this.selectedComment = comment;
       if (!comment.home_page) {
         this.showHomepageModal = true;
+        console.log('Homepage modal opened for comment without homepage:', comment);
       } else {
         window.open(comment.home_page, "_blank");
+        console.log('Opening homepage in new tab:', comment.home_page);
       }
     },
 
@@ -167,6 +178,7 @@ export default {
       this.showEmailModal = false;
       this.showHomepageModal = false;
       this.selectedComment = null;
+      console.log('Modals closed');
     },
   },
   mounted() {
@@ -175,6 +187,7 @@ export default {
   beforeUnmount() {
     if (this.socket) {
       this.socket.close();
+      console.log('WebSocket closed');
     }
   },
 };

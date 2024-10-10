@@ -1,10 +1,8 @@
 <template>
   <li class="comment-item">
     <div class="comment-box">
-      <!-- Серый фон для обрамления комментария -->
       <div style="background: lightgray; border-radius: 8px; padding: 2px">
 
-        <!-- Превью, если это ответ на другой комментарий -->
         <div v-if="comment.replyTo" class="reply-preview">
           <div class="reply-info">
             <strong>{{ comment.replyTo.username }}</strong>
