@@ -19,7 +19,6 @@
             <button @click="showHomepage" class="meta-button">Homepage</button>
             <button @click="setReply(comment.id, comment.username, comment.text)" class="meta-button">Reply</button>
           </div>
-
         </div>
       </div>
 

@@ -3,39 +3,29 @@
     <div class="comments-section" ref="commentsSection">
       <ul class="comments-list">
         <comment-item
-          v-for="comment in comments"
-          :key="comment.id"
-          :comment="comment"
-          @reply="setReply"
-          @showEmail="openEmailModal"
-          @showHomepage="openHomepageModal"
+            v-for="comment in comments"
+            :key="comment.id"
+            :comment="comment"
+            @reply="setReply"
+            @showEmail="openEmailModal"
+            @showHomepage="openHomepageModal"
         />
       </ul>
     </div>
 
-    <form @submit.prevent="sendCommentOrReply" class="comment-form">
-      <div v-if="replyTo" class="reply-indicator">
-        <span class="replying-text">
-          Replying to "{{ replyToUsername }}" comment:
-          <br />
-          "{{ replyToText }}"
-        </span>
-        <button @click="cancelReply" class="cancel-reply">Cancel</button>
-      </div>
+    <div class="pagination-controls">
+      <button @click="previousPage" :disabled="currentPage === 1" class="pagination-button">Previous</button>
+      <span class="pagination-text">Page {{ currentPage }} of {{ totalPages }}</span>
+      <button @click="nextPage" :disabled="currentPage === totalPages" class="pagination-button">Next</button>
+    </div>
 
-      <textarea v-model="newComment" placeholder="Write a message..." class="textarea"></textarea>
-
-      <input
-        v-model="homePage"
-        type="url"
-        placeholder="Your home page (optional)"
-        class="input"
-      />
-
-      <button type="submit" class="submit-button">
-        {{ replyTo ? 'Reply' : 'Post Comment' }}
-      </button>
-    </form>
+    <div class="form-pagination-container">
+      <form @submit.prevent="sendCommentOrReply" class="comment-form">
+        <textarea v-model="newComment" placeholder="Write a message..." class="textarea"></textarea>
+        <input v-model="homePage" type="url" placeholder="Your home page (optional)" class="input"/>
+        <button type="submit" class="submit-button">{{ replyTo ? 'Reply' : 'Post Comment' }}</button>
+      </form>
+    </div>
 
     <div v-if="showEmailModal" class="modal">
       <div class="modal-content">
@@ -44,7 +34,6 @@
         <button @click="closeModal" class="close-button">Close</button>
       </div>
     </div>
-
     <div v-if="showHomepageModal" class="modal">
       <div class="modal-content">
         <h3>Homepage</h3>
@@ -74,6 +63,9 @@ export default {
       replyToText: null,
       socket: null,
       comments: [],
+      currentPage: 1,
+      totalPages: 1,
+      pageSize: 25,
       selectedComment: null,
       showEmailModal: false,
       showHomepageModal: false,
@@ -88,7 +80,7 @@ export default {
 
       this.socket.onopen = () => {
         console.log('WebSocket connected');
-        this.socket.send(JSON.stringify({ action: 'list_comments' }));
+        this.requestComments(this.currentPage);
       };
 
       this.socket.onmessage = (event) => {
@@ -97,6 +89,8 @@ export default {
 
         if (data.action === 'list_comments') {
           this.comments = data.comments;
+          this.currentPage = data.current_page;
+          this.totalPages = data.count_pages;
           console.log('Comments updated:', this.comments);
         }
       };
@@ -108,6 +102,28 @@ export default {
       this.socket.onclose = () => {
         console.log('WebSocket disconnected');
       };
+    },
+
+    requestComments(page) {
+      this.socket.send(JSON.stringify({
+        action: 'list_comments',
+        page: page,
+        page_size: this.pageSize
+      }));
+    },
+
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+        this.requestComments(this.currentPage);
+      }
+    },
+
+    previousPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+        this.requestComments(this.currentPage);
+      }
     },
 
     sendCommentOrReply() {
@@ -218,6 +234,15 @@ export default {
   margin: 0;
 }
 
+.form-pagination-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 80%;
+}
+
 .comment-form {
   background-color: #fff;
   padding: 20px;
@@ -225,8 +250,7 @@ export default {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   width: 100%;
   max-width: 47%;
-  position: sticky;
-  bottom: 0;
+  margin-bottom: 20px;
 }
 
 .textarea {
@@ -265,21 +289,34 @@ export default {
   background-color: #4a47a3;
 }
 
-.reply-indicator {
-  background-color: #f0f0f0;
-  padding: 10px;
-  border-left: 4px solid #5e60ce;
-  margin-bottom: 15px;
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
 }
 
-.cancel-reply {
-  background: none;
+.pagination-button {
+  background-color: #5e60ce;
+  color: white;
+  padding: 10px 20px;
   border: none;
-  color: red;
+  border-radius: 8px;
   cursor: pointer;
-  margin-left: 10px;
-  font-size: 0.9rem;
-  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.pagination-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #4a47a3;
+}
+
+.pagination-text {
+  font-size: 1rem;
 }
 
 .modal {
