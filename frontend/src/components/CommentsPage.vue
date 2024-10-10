@@ -1,75 +1,48 @@
 <template>
   <div class="comments-container">
-    <div class="comments-section">
-      <ul class="comments-list">
-        <li v-for="comment in comments" :key="comment.id" class="comment-item">
-          <div class="comment-box">
-            <div class="comment-header">
-              <div class="avatar">{{ comment.username.charAt(0).toUpperCase() }}</div>
-              <strong class="comment-username">{{ comment.username }}</strong>
-              <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
-              <div class="comment-actions">
-                <button @click="toggleEmailModal(comment)" class="info-button">Email</button>
-                <button @click="handleHomepage(comment)" class="info-button">Homepage</button>
-                <button @click="setReply(comment.id, comment.username, comment.text)" class="reply-button">Reply
-                </button>
-              </div>
-            </div>
+    <div class="sort-controls">
+      <label for="sort-by">Sort by:</label>
+      <select id="sort-by" v-model="sortBy" @change="requestComments(1)">
+        <option value="username">User Name</option>
+        <option value="email">E-mail</option>
+        <option value="date">Date</option>
+      </select>
 
-            <p class="comment-text">{{ comment.text }}</p>
-
-            <button v-if="!comment.showReplies && comment.replies && comment.replies.length > 0"
-                    @click="toggleReplies(comment)" class="view-replies-button">
-              View comments ({{ comment.replies.length }})
-            </button>
-
-            <button v-if="comment.showReplies && comment.replies && comment.replies.length > 0"
-                    @click="toggleReplies(comment)" class="hide-replies-button">
-              Hide comments
-            </button>
-            <ul v-if="comment.replies && comment.replies.length > 0" class="reply-list">
-              <li v-for="reply in comment.replies" :key="reply.id" class="reply-item">
-                <div class="reply-box">
-                  <strong>{{ reply.username }}</strong>
-                  <span class="comment-date">{{ formatDate(reply.created_at) }}</span>:
-                  <p>{{ reply.text }}</p>
-                  <a v-if="reply.home_page" :href="reply.home_page" target="_blank">{{ reply.home_page }}</a>
-                  <!-- Рекурсивный вызов для рендеринга вложенных ответов -->
-                  <ul v-if="reply.replies && reply.replies.length > 0">
-                    <li v-for="nestedReply in reply.replies" :key="nestedReply.id" class="nested-reply-item">
-                      <div class="nested-reply-box">
-                        <strong>{{ nestedReply.username }}</strong>
-                        <span class="comment-date">{{ formatDate(nestedReply.created_at) }}</span>:
-                        <p>{{ nestedReply.text }}</p>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </li>
-      </ul>
-
-      <form @submit.prevent="sendCommentOrReply" class="comment-form">
-        <textarea v-model="newComment" placeholder="Write a message..." class="textarea"></textarea>
-        <input v-model="homePage" placeholder="Your website (optional)" type="url" class="input"/>
-
-        <div v-if="replyTo" class="reply-indicator">
-          <span class="replying-text">
-            Replying to "{{ replyToUsername }}" comment
-            <br>
-            "{{ replyToText }}"
-          </span>
-          <button @click="cancelReply" class="cancel-reply">Cancel</button>
-        </div>
-
-        <button type="submit" class="submit-button">
-          {{ replyTo ? 'Reply' : 'Make a Post' }}
-        </button>
-      </form>
+      <label for="sort-order">Order:</label>
+      <select id="sort-order" v-model="sortOrder" @change="requestComments(1)">
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
+      </select>
     </div>
 
+    <div class="comments-section" ref="commentsSection">
+      <ul class="comments-list">
+        <comment-item
+            v-for="comment in comments"
+            :key="comment.id"
+            :comment="comment"
+            @reply="setReply"
+            @showEmail="openEmailModal"
+            @showHomepage="openHomepageModal"
+        />
+      </ul>
+    </div>
+
+    <!-- Пагинация -->
+    <div class="pagination-controls">
+      <button @click="previousPage" :disabled="currentPage === 1" class="pagination-button">Previous</button>
+      <span class="pagination-text">Page {{ currentPage }} of {{ totalPages }}</span>
+      <button @click="nextPage" :disabled="currentPage === totalPages" class="pagination-button">Next</button>
+      <button @click="goToLastPage" :disabled="currentPage === totalPages" class="pagination-button">Last Page</button>
+    </div>
+
+    <form @submit.prevent="sendCommentOrReply" class="comment-form">
+      <textarea v-model="newComment" placeholder="Write a message..." class="textarea"></textarea>
+      <input v-model="homePage" type="url" placeholder="Your home page (optional)" class="input"/>
+      <button type="submit" class="submit-button">{{ replyTo ? 'Reply' : 'Post Comment' }}</button>
+    </form>
+
+    <!-- Модальные окна для Email и Homepage -->
     <div v-if="showEmailModal" class="modal">
       <div class="modal-content">
         <h3>Email</h3>
@@ -77,7 +50,6 @@
         <button @click="closeModal" class="close-button">Close</button>
       </div>
     </div>
-
     <div v-if="showHomepageModal" class="modal">
       <div class="modal-content">
         <h3>Homepage</h3>
@@ -92,101 +64,154 @@
 </template>
 
 <script>
+import CommentItem from './CommentItem.vue';
 
 export default {
+  components: {
+    CommentItem,
+  },
   data() {
     return {
-      comments: [],
-      newComment: "",
-      homePage: "",
+      newComment: '',
+      homePage: '',
       replyTo: null,
       replyToUsername: null,
       replyToText: null,
       socket: null,
+      comments: [],
+      currentPage: 1,
+      totalPages: 1,
+      pageSize: 25,
+      sortBy: 'date',
+      sortOrder: 'desc',
+      selectedComment: null,
       showEmailModal: false,
       showHomepageModal: false,
-      selectedComment: null
     };
   },
   methods: {
     connectWebSocket() {
       const token = localStorage.getItem('jwt');
+      console.log('Attempting to connect to WebSocket with token:', token);
+
       this.socket = new WebSocket(`${process.env.VUE_APP_WS_URL}/ws/comments/?token=${token}`);
 
       this.socket.onopen = () => {
-        this.socket.send(JSON.stringify({action: "list_comments"}));
+        console.log('WebSocket connected');
+        this.requestComments(this.currentPage);
       };
 
       this.socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        if (data.action === "list_comments") {
+        console.log('Received message from WebSocket:', data);
+
+        if (data.action === 'list_comments') {
           this.comments = data.comments;
+          this.currentPage = data.current_page;
+          this.totalPages = data.count_pages;
+          console.log('Comments updated:', this.comments);
         }
       };
 
       this.socket.onerror = (error) => {
-        console.error("WebSocket error:", error);
+        console.error('WebSocket error:', error);
       };
 
       this.socket.onclose = () => {
-        console.log("WebSocket disconnected");
+        console.log('WebSocket disconnected');
       };
+    },
+
+    requestComments(page) {
+      this.socket.send(JSON.stringify({
+        action: 'list_comments',
+        page: page,
+        page_size: this.pageSize,
+        sort_by: this.sortBy,
+        sort_order: this.sortOrder
+      }));
+    },
+
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+        this.requestComments(this.currentPage);
+      }
+    },
+
+    previousPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+        this.requestComments(this.currentPage);
+      }
+    },
+
+    goToLastPage() {
+      this.requestComments(this.totalPages);
+      this.currentPage = this.totalPages;
     },
 
     sendCommentOrReply() {
       if (this.newComment.trim()) {
-        const action = this.replyTo ? "reply_comment" : "create_comment";
         const payload = {
-          action,
+          action: 'create_comment',
           text: this.newComment,
-          home_page: this.homePage
+          home_page: this.homePage || null,
         };
 
         if (this.replyTo) {
           payload.reply_id = this.replyTo;
-          const parentComment = this.comments.find(comment => comment.id === this.replyTo);
-          if (parentComment) {
-            parentComment.showReplies = true;
-          }
         }
 
+        console.log('Sending comment payload:', payload);
         this.socket.send(JSON.stringify(payload));
 
-        this.newComment = "";
-        this.homePage = "";
+        this.newComment = '';
+        this.homePage = '';
         this.replyTo = null;
         this.replyToUsername = null;
         this.replyToText = null;
+
+        this.$nextTick(() => {
+          this.scrollToBottom();
+        });
       }
     },
 
     setReply(commentId, username, text) {
       this.replyTo = commentId;
       this.replyToUsername = username;
-      this.replyToText = text.slice(0, 20) + (text.length > 20 ? "..." : "");
+      this.replyToText = text.slice(0, 50) + (text.length > 50 ? '...' : '');
+      console.log('Replying to comment:', this.replyTo, this.replyToUsername);
     },
 
     cancelReply() {
       this.replyTo = null;
       this.replyToUsername = null;
       this.replyToText = null;
+      console.log('Reply cancelled');
     },
 
-    toggleReplies(comment) {
-      comment.showReplies = !comment.showReplies;
+    scrollToBottom() {
+      const commentsSection = this.$refs.commentsSection;
+      commentsSection.scrollTop = commentsSection.scrollHeight;
+      console.log('Scrolled to bottom');
     },
 
-    toggleEmailModal(comment) {
+    openEmailModal(comment) {
       this.selectedComment = comment;
       this.showEmailModal = true;
+      console.log('Email modal opened for comment:', comment);
     },
 
-    handleHomepage(comment) {
-      if (comment.home_page) {
-        window.open(comment.home_page, "_blank");
-      } else {
-        this.selectedComment = comment;
+    openHomepageModal(comment) {
+      this.selectedComment = comment;
+      if (!comment.home_page) {
         this.showHomepageModal = true;
+        console.log('Homepage modal opened for comment without homepage:', comment);
+      } else {
+        window.open(comment.home_page, "_blank");
+        console.log('Opening homepage in new tab:', comment.home_page);
       }
     },
 
@@ -194,18 +219,8 @@ export default {
       this.showEmailModal = false;
       this.showHomepageModal = false;
       this.selectedComment = null;
+      console.log('Modals closed');
     },
-
-
-    formatDate(dateString) {
-      const date = new Date(dateString);
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = String(date.getFullYear()).slice(2);
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `${day}.${month}.${year} at ${hours}:${minutes}`;
-    }
   },
   mounted() {
     this.connectWebSocket();
@@ -213,165 +228,99 @@ export default {
   beforeUnmount() {
     if (this.socket) {
       this.socket.close();
+      console.log('WebSocket closed');
     }
-  }
+  },
 };
 </script>
 
 <style scoped>
-
 .comments-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  min-height: 100vh;
   width: 100%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 0;
-  overflow: hidden;
+  height: 100vh;
 }
 
 .comments-section {
-  background-color: #fff;
-  padding: 40px;
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 800px;
-  height: 80vh;
+  max-width: 80%;
+  height: 100%;
   overflow-y: auto;
-  position: relative;
-  animation: fadeIn 0.6s ease-in-out;
+  margin-bottom: 20px;
+  padding-right: 10px;
 }
 
 .comments-list {
-  list-style-type: none;
   padding: 0;
-  margin: 20px 0;
+  list-style: none;
+  margin: 0;
 }
 
-.comment-item {
-  margin-bottom: 20px;
-}
-
-.comment-box {
-  background-color: #f9f9f9;
-  border-radius: 8px;
+.comment-form {
+  background-color: #fff;
   padding: 20px;
-  border: 1px solid #ddd;
-  text-align: left;
-  word-wrap: break-word;
-}
-
-.comment-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.comment-username {
-  font-size: 1.2rem;
-  color: #333;
-}
-
-.comment-date {
-  font-size: 0.9rem;
-  color: #777;
-}
-
-.comment-text {
-  margin: 15px 0;
-  font-size: 1rem;
-  color: #444;
-}
-
-.comment-actions {
-  display: flex;
-  gap: 10px;
-  margin-left: auto;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  background-color: #007bff;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-}
-
-.textarea, .input {
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   width: 100%;
-  margin-bottom: 10px;
-  padding: 16px;
-  border-radius: 5px;
+  max-width: 47%;
+  position: sticky;
+  bottom: 0;
+}
+
+.textarea {
+  width: 100%;
+  padding: 12px;
   border: 1px solid #ddd;
-  font-size: 1.1rem;
-  font-family: 'Roboto', sans-serif;
-  word-wrap: break-word;
-  resize: none;
-  max-height: 200px;
-  overflow-y: auto;
+  border-radius: 8px;
+  resize: vertical;
+  min-height: 80px;
+  margin-bottom: 15px;
+  font-size: 1rem;
+}
+
+.input {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 15px;
 }
 
 .submit-button {
-  background-color: #764ba2;
+  background-color: #5e60ce;
   color: white;
-  padding: 16px;
+  font-size: 1rem;
+  padding: 12px;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
   width: 100%;
-}
-
-.submit-button:hover {
-  background-color: #5e3c96;
-}
-
-.info-button, .reply-button, .view-replies-button, .hide-replies-button {
-  background-color: #764ba2;
-  color: white;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
   transition: background-color 0.3s;
 }
 
-.info-button:hover, .reply-button:hover, .view-replies-button:hover, .hide-replies-button:hover {
-  background-color: #5e3c96;
+.submit-button:hover {
+  background-color: #4a47a3;
 }
 
 .reply-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   background-color: #f0f0f0;
-  padding: 10px 15px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  word-wrap: break-word;
-}
-
-.replying-text {
-  font-size: 1.1rem;
-  color: #444;
+  padding: 10px;
+  border-left: 4px solid #5e60ce;
+  margin-bottom: 15px;
 }
 
 .cancel-reply {
-  background-color: #ff4d4d;
-  color: white;
+  background: none;
   border: none;
-  padding: 8px 15px;
-  border-radius: 5px;
+  color: red;
   cursor: pointer;
-}
-
-.cancel-reply:hover {
-  background-color: #ff1a1a;
+  margin-left: 10px;
+  font-size: 0.9rem;
+  font-weight: bold;
 }
 
 .modal {
@@ -392,7 +341,6 @@ export default {
   padding: 40px;
   border-radius: 8px;
   text-align: center;
-  animation: fadeIn 0.5s ease-in-out;
 }
 
 .close-button {
@@ -409,47 +357,42 @@ export default {
   background-color: #ff1a1a;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.reply-list {
-  max-height: 150px;
-  overflow-y: auto;
-  padding-left: 0;
-  margin-top: 15px;
-}
-
-.reply-box {
-  background-color: #f0f0f0;
-  padding: 10px;
-  border-radius: 6px;
+.sort-controls {
   margin-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-.reply-list::-webkit-scrollbar {
-  width: 6px;
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
 }
 
-.reply-list::-webkit-scrollbar-thumb {
-  background-color: #764ba2;
-  border-radius: 10px;
+.pagination-button {
+  background-color: #5e60ce;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.home-page-link {
-  color: #764ba2;
-  text-decoration: none;
-  font-weight: bold;
+.pagination-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
-.home-page-link:hover {
-  text-decoration: underline;
+.pagination-button:hover:not(:disabled) {
+  background-color: #4a47a3;
 }
+
+.pagination-text {
+  font-size: 1rem;
+}
+
 </style>

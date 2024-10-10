@@ -38,14 +38,34 @@ export default {
           username: this.username,
           password: this.password,
         });
-        localStorage.setItem('jwt', response.data.access);
-        this.$router.push('/comments');
+        localStorage.setItem('jwt', response.data.access);  // Сохраняем access-токен
+        localStorage.setItem('refresh', response.data.refresh);  // Сохраняем refresh-токен
+        this.$router.push('/comments');  // Перенаправляем на другую страницу после успешного входа
+        this.setupTokenRefresh();  // Настраиваем автоматическое обновление токенов
       } catch (error) {
         this.error = 'Login failed. Please check your credentials.';
       } finally {
         this.loading = false;
       }
     },
+    setupTokenRefresh() {
+      setInterval(async () => {
+        try {
+          const refreshToken = localStorage.getItem('refresh');
+          if (refreshToken) {
+            const response = await axios.post(`${process.env.VUE_APP_API_URL}/user/token/refresh/`, {
+              refresh: refreshToken,
+            });
+            localStorage.setItem('jwt', response.data.access);  // Обновляем access-токен
+          }
+        } catch (error) {
+          console.error('Token refresh failed:', error);
+        }
+      }, 4 * 60 * 1000);  // Обновляем токен каждые 4 минуты (до истечения времени жизни)
+    },
+  },
+  mounted() {
+    this.setupTokenRefresh();  // Настраиваем обновление токенов при загрузке страницы
   },
 };
 </script>
