@@ -3,30 +3,32 @@
     <div class="comments-section" ref="commentsSection">
       <ul class="comments-list">
         <comment-item
-            v-for="comment in comments"
-            :key="comment.id"
-            :comment="comment"
-            @reply="setReply"
-            @showEmail="openEmailModal"
-            @showHomepage="openHomepageModal"
+          v-for="comment in comments"
+          :key="comment.id"
+          :comment="comment"
+          @reply="setReply"
+          @showEmail="openEmailModal"
+          @showHomepage="openHomepageModal"
         />
       </ul>
     </div>
 
-    <div class="pagination-controls">
-      <button @click="previousPage" :disabled="currentPage === 1" class="pagination-button">Previous</button>
-      <span class="pagination-text">Page {{ currentPage }} of {{ totalPages }}</span>
-      <button @click="nextPage" :disabled="currentPage === totalPages" class="pagination-button">Next</button>
-    </div>
-
     <div class="form-pagination-container">
+      <div class="pagination-controls">
+        <button @click="previousPage" :disabled="currentPage === 1" class="pagination-button">Previous</button>
+        <span class="pagination-text">Page {{ currentPage }} of {{ totalPages }}</span>
+        <button @click="nextPage" :disabled="currentPage === totalPages" class="pagination-button">Next</button>
+        <button @click="goToLastPage" :disabled="currentPage === totalPages" class="pagination-button">Last Page</button>
+      </div>
+
       <form @submit.prevent="sendCommentOrReply" class="comment-form">
         <textarea v-model="newComment" placeholder="Write a message..." class="textarea"></textarea>
-        <input v-model="homePage" type="url" placeholder="Your home page (optional)" class="input"/>
+        <input v-model="homePage" type="url" placeholder="Your home page (optional)" class="input" />
         <button type="submit" class="submit-button">{{ replyTo ? 'Reply' : 'Post Comment' }}</button>
       </form>
     </div>
 
+    <!-- Модальные окна для Email и Homepage -->
     <div v-if="showEmailModal" class="modal">
       <div class="modal-content">
         <h3>Email</h3>
@@ -124,6 +126,11 @@ export default {
         this.currentPage--;
         this.requestComments(this.currentPage);
       }
+    },
+
+    goToLastPage() {
+      this.requestComments(this.totalPages);
+      this.currentPage = this.totalPages;
     },
 
     sendCommentOrReply() {
@@ -294,6 +301,7 @@ export default {
   justify-content: center;
   align-items: center;
   gap: 15px;
+  margin-bottom: 20px;
 }
 
 .pagination-button {
