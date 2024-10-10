@@ -13,6 +13,12 @@ from comments.serializers import CommentListSerializer
 
 
 class CommentConsumer(AsyncWebsocketConsumer):
+    SORTING = {
+        "username": "user__username",
+        "email": "user__email",
+        "date": "created_at"
+    }
+
     async def connect(self):
         if not self.scope['user'].is_authenticated:
             await self.close()
@@ -23,9 +29,13 @@ class CommentConsumer(AsyncWebsocketConsumer):
             await self.send_comments_list()
 
     @database_sync_to_async
-    def get_comments_from_db(self, page, page_size):
+    def get_comments_from_db(self, page, page_size, sort_by, sort_order):
+        sort = self.SORTING.get(sort_by, "created_at")
+        order_prefix = '' if sort_order == 'asc' else '-'
+        sort_field_with_order = f'{order_prefix}{sort}'
+
         paginator = Paginator(
-            Comment.objects.filter(reply=None).select_related("user"),
+            Comment.objects.filter(reply=None).select_related("user").order_by(sort_field_with_order),
             page_size
         )
         try:
@@ -35,8 +45,8 @@ class CommentConsumer(AsyncWebsocketConsumer):
                 paginator.num_pages)
         return CommentListSerializer(paginated_comments, many=True).data, paginator.num_pages
 
-    async def send_comments_list(self, page=1, page_size=25):
-        comments, count_pages = await self.get_comments_from_db(page, page_size)
+    async def send_comments_list(self, page=1, page_size=25, sort_by="date", sort_order="desc"):
+        comments, count_pages = await self.get_comments_from_db(page, page_size, sort_by, sort_order)
         await self.send(text_data=json.dumps({
             "action": "list_comments",
             "comments": comments,
@@ -50,10 +60,14 @@ class CommentConsumer(AsyncWebsocketConsumer):
             text = data.get("text")
             home_page = data.get("home_page")
             reply_id = data.get("reply_id")
+
             if data.get("action") == "list_comments":
-                page = data.get("page", 1)
-                page_size = data.get("page_size", 25)
-                await self.send_comments_list(page=page, page_size=page_size)
+                await self.send_comments_list(
+                    page=data.get("page", 1),
+                    page_size=data.get("page_size", 25),
+                    sort_by=data.get("sort_by", "date"),
+                    sort_order=data.get("sort_order", "desc")
+                )
 
             elif data.get("action") == "create_comment":
                 if text:

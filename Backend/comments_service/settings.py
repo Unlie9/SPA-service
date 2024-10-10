@@ -120,9 +120,9 @@ SPECTACULAR_SETTINGS = {
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
-        minutes=1
+        minutes=5
     ),
-    "REFRESH_TOKEN_LIFETIME": timedelta(minutes=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(minutes=5),
     "ROTATE_REFRESH_TOKENS": False,
 }
 
@@ -142,6 +142,7 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'comments_service.wsgi.application'
 ASGI_APPLICATION = 'comments_service.asgi.application'
 
@@ -154,6 +155,7 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
 
 DATABASES = {
     "default": {
