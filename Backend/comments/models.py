@@ -10,7 +10,7 @@ class Comment(models.Model):
     )
     reply = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="replies")
     home_page = models.URLField(blank=True, null=True)
-    text = models.CharField(max_length=500)
+    text = models.CharField(max_length=2084)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

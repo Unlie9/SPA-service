@@ -1,13 +1,12 @@
 import json
-from django.db import transaction
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.paginator import EmptyPage, Paginator
+from django.db import transaction
 
-from django.core.paginator import Paginator
-from django.core.paginator import EmptyPage
-
-from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from channels.generic.websocket import AsyncWebsocketConsumer
+
 from comments.models import Comment
 from comments.serializers import CommentListSerializer
 
