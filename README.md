@@ -50,6 +50,6 @@ This project demonstrates the integration of a modern SPA frontend with a powerf
 ## Demo
 ![Alt text](./frontend/public/register.jpeg)
 ![Alt text](./frontend/public/login.jpeg)
-![Alt text](./frontend/public/chat2.jpeg)
 ![Alt text](./frontend/public/chat.jpeg)
+![Alt text](./frontend/public/chati.jpeg)
 ![Alt text](./frontend/public/email.jpeg)
