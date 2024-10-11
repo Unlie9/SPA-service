@@ -13,6 +13,10 @@
       </form>
       <p v-if="error" class="error-msg">{{ error }}</p>
       <p v-if="loading" class="loading-msg">Logging in...</p>
+      <div class="register-section">
+        <p>Not registered?</p>
+        <button @click="goToRegister" class="register-button">Register here</button>
+      </div>
     </div>
   </div>
 </template>
@@ -38,10 +42,10 @@ export default {
           username: this.username,
           password: this.password,
         });
-        localStorage.setItem('jwt', response.data.access);  // Сохраняем access-токен
-        localStorage.setItem('refresh', response.data.refresh);  // Сохраняем refresh-токен
-        this.$router.push('/comments');  // Перенаправляем на другую страницу после успешного входа
-        this.setupTokenRefresh();  // Настраиваем автоматическое обновление токенов
+        localStorage.setItem('jwt', response.data.access);
+        localStorage.setItem('refresh', response.data.refresh);
+        this.$router.push('/comments');
+        this.setupTokenRefresh();
       } catch (error) {
         this.error = 'Login failed. Please check your credentials.';
       } finally {
@@ -56,16 +60,19 @@ export default {
             const response = await axios.post(`${process.env.VUE_APP_API_URL}/user/token/refresh/`, {
               refresh: refreshToken,
             });
-            localStorage.setItem('jwt', response.data.access);  // Обновляем access-токен
+            localStorage.setItem('jwt', response.data.access);
           }
         } catch (error) {
           console.error('Token refresh failed:', error);
         }
-      }, 4 * 60 * 1000);  // Обновляем токен каждые 4 минуты (до истечения времени жизни)
+      }, 4 * 60 * 1000);
     },
+    goToRegister() {
+      this.$router.push('/register');
+    }
   },
   mounted() {
-    this.setupTokenRefresh();  // Настраиваем обновление токенов при загрузке страницы
+    this.setupTokenRefresh();
   },
 };
 </script>
@@ -170,6 +177,29 @@ button:disabled {
   color: #007bff;
   margin-top: 15px;
   font-size: 0.9rem;
+}
+
+.register-section {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.register-button {
+  margin-top: 10px;
+  background-color: transparent;
+  border: 2px solid #764ba2;
+  color: #764ba2;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.register-button:hover {
+  background-color: #764ba2;
+  color: #fff;
 }
 
 @media (max-width: 768px) {

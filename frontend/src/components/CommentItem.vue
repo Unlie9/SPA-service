@@ -90,6 +90,14 @@ export default {
   animation: fadeInComment 0.5s ease-in-out;
 }
 
+.header-info {
+  padding-left: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
 @keyframes fadeInComment {
   from {
     opacity: 0;

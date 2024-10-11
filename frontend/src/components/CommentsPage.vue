@@ -393,17 +393,51 @@ export default {
 }
 
 .sort-controls {
-  margin-bottom: 10px;
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
-  opacity: 0.85;
-  transition: opacity 0.3s ease;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .sort-controls:hover {
-  opacity: 1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: scale(1.02);
 }
+
+label {
+  font-size: 0.9rem;
+  color: #f0f0f0;
+  font-weight: 500;
+}
+
+select {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #764ba2;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+select:hover {
+  border-color: #5e60ce;
+  box-shadow: 0 2px 8px rgba(94, 96, 206, 0.3);
+  transform: translateY(-1px);
+}
+
+select:focus {
+  outline: none;
+  border-color: #5e60ce;
+  box-shadow: 0 0 6px rgba(94, 96, 206, 0.4);
+}
+
 
 .modal {
   position: fixed;

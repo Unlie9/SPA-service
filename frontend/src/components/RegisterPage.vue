@@ -4,17 +4,23 @@
       <h1>Register</h1>
       <form @submit.prevent="register">
         <div class="input-group">
-          <input v-model="username" placeholder="Username"/>
+          <input v-model="username" placeholder="Username" />
         </div>
         <div class="input-group">
-          <input v-model="email" placeholder="Email"/>
+          <input v-model="email" placeholder="Email" />
         </div>
         <div class="input-group">
-          <input type="password" v-model="password" placeholder="Password"/>
+          <input type="password" v-model="password" placeholder="Password" />
         </div>
         <button type="submit">Register</button>
       </form>
       <p v-if="error" class="error-msg">{{ error }}</p>
+
+      <!-- Секция с переходом на логин -->
+      <div class="login-section">
+        <p>Already have an account?</p>
+        <button @click="goToLogin" class="login-button">Login here</button>
+      </div>
     </div>
   </div>
 </template>
@@ -45,6 +51,9 @@ export default {
           .catch(() => {
             this.error = 'Registration failed. Please check your inputs.';
           });
+    },
+    goToLogin() {
+      this.$router.push('/login');
     },
   },
 };
@@ -118,7 +127,6 @@ input:focus {
   outline: none;
 }
 
-/* Кнопка */
 button {
   width: 100%;
   padding: 12px;
@@ -144,6 +152,29 @@ button:disabled {
   color: red;
   margin-top: 15px;
   font-size: 0.9rem;
+}
+
+.login-section {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.login-button {
+  margin-top: 10px;
+  background-color: transparent;
+  border: 2px solid #764ba2;
+  color: #764ba2;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.login-button:hover {
+  background-color: #764ba2;
+  color: #fff;
 }
 
 @media (max-width: 768px) {
