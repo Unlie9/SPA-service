@@ -28,7 +28,6 @@
       </ul>
     </div>
 
-    <!-- Пагинация -->
     <div class="pagination-controls">
       <button @click="previousPage" :disabled="currentPage === 1" class="pagination-button">Previous</button>
       <span class="pagination-text">Page {{ currentPage }} of {{ totalPages }}</span>
@@ -42,7 +41,6 @@
       <button type="submit" class="submit-button">{{ replyTo ? 'Reply' : 'Post Comment' }}</button>
     </form>
 
-    <!-- Модальные окна для Email и Homepage -->
     <div v-if="showEmailModal" class="modal">
       <div class="modal-content">
         <h3>Email</h3>
@@ -171,10 +169,6 @@ export default {
         this.replyTo = null;
         this.replyToUsername = null;
         this.replyToText = null;
-
-        this.$nextTick(() => {
-          this.scrollToBottom();
-        });
       }
     },
 

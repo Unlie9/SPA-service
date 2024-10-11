@@ -24,6 +24,8 @@ class CommentConsumer(AsyncWebsocketConsumer):
             await self.close()
         else:
             self.room_name = "chat_room"
+            self.current_sort_by = "date"
+            self.current_sort_order = "desc"
             await self.channel_layer.group_add(self.room_name, self.channel_name)
             await self.accept()
             await self.send_comments_list()
@@ -62,11 +64,13 @@ class CommentConsumer(AsyncWebsocketConsumer):
             reply_id = data.get("reply_id")
 
             if data.get("action") == "list_comments":
+                self.current_sort_by = data.get("sort_by", "date")
+                self.current_sort_order = data.get("sort_order", "desc")
                 await self.send_comments_list(
                     page=data.get("page", 1),
                     page_size=data.get("page_size", 25),
-                    sort_by=data.get("sort_by", "date"),
-                    sort_order=data.get("sort_order", "desc")
+                    sort_by=self.current_sort_by,
+                    sort_order=self.current_sort_order
                 )
 
             elif data.get("action") == "create_comment":
@@ -75,7 +79,9 @@ class CommentConsumer(AsyncWebsocketConsumer):
                     await self.channel_layer.group_send(
                         self.room_name,
                         {
-                            "type": "broadcast_comments"
+                            "type": "broadcast_comments",
+                            "sort_by": self.current_sort_by,
+                            "sort_order": self.current_sort_order,
                         }
                     )
                 elif not text or text.strip() == "":
@@ -117,4 +123,9 @@ class CommentConsumer(AsyncWebsocketConsumer):
                 print(f"Error while creating comment: {str(e)}")
 
     async def broadcast_comments(self, event):
-        await self.send_comments_list(page=1, page_size=25)
+        await self.send_comments_list(
+            page=1,
+            page_size=25,
+            sort_by=event.get("sort_by", "date"),
+            sort_order=event.get("sort_order", "desc")
+        )
