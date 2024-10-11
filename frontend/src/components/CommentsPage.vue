@@ -236,6 +236,19 @@ export default {
   width: 100%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   height: 100vh;
+  padding-top: 20px;
+  animation: fadeInPage 1s ease-in-out;
+}
+
+@keyframes fadeInPage {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .comments-section {
@@ -245,6 +258,18 @@ export default {
   overflow-y: auto;
   margin-bottom: 20px;
   padding-right: 10px;
+  animation: slideInSection 0.8s ease-in-out;
+}
+
+@keyframes slideInSection {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .comments-list {
@@ -257,31 +282,53 @@ export default {
   background-color: #fff;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 47%;
   position: sticky;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   bottom: 0;
+  transition: box-shadow 0.3s ease-in-out, transform 0.3s;
+}
+
+.comment-form:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-5px);
 }
 
 .textarea {
-  width: 100%;
+  width: 98%;
   padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
   resize: vertical;
-  min-height: 80px;
-  margin-bottom: 15px;
-  font-size: 1rem;
+  min-height: 68px;
+  margin-bottom: 5px;
+  font-size: 1.1rem;
+  transition: border-color 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+
+.textarea, .input {
+  transition: border-color 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+.textarea:focus, .input:focus {
+  border-color: #5e60ce;
+  background-color: #f0f0ff;
+  box-shadow: 0 0 10px rgba(118, 75, 162, 0.2);
+  outline: none;
 }
 
 .input {
-  width: 100%;
-  padding: 12px;
-  font-size: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  margin-bottom: 15px;
+  width: 98%;
+  padding: 15px;
+  font-size: 1.1rem;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  margin-bottom: 20px;
 }
 
 .submit-button {
@@ -293,69 +340,17 @@ export default {
   border-radius: 8px;
   cursor: pointer;
   width: 100%;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
 }
 
 .submit-button:hover {
   background-color: #4a47a3;
+  box-shadow: 0 4px 15px rgba(74, 71, 163, 0.5);
+  transform: translateY(-5px);
 }
 
-.reply-indicator {
-  background-color: #f0f0f0;
-  padding: 10px;
-  border-left: 4px solid #5e60ce;
-  margin-bottom: 15px;
-}
-
-.cancel-reply {
-  background: none;
-  border: none;
-  color: red;
-  cursor: pointer;
-  margin-left: 10px;
-  font-size: 0.9rem;
-  font-weight: bold;
-}
-
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background-color: #fff;
-  padding: 40px;
-  border-radius: 8px;
-  text-align: center;
-}
-
-.close-button {
-  background-color: #ff4d4d;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.close-button:hover {
-  background-color: #ff1a1a;
-}
-
-.sort-controls {
-  margin-bottom: 10px;
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
+.submit-button:active {
+  transform: scale(0.98);
 }
 
 .pagination-controls {
@@ -373,7 +368,17 @@ export default {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #4a47a3;
+  transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(74, 71, 163, 0.5);
+}
+
+.pagination-button:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .pagination-button:disabled {
@@ -381,12 +386,75 @@ export default {
   cursor: not-allowed;
 }
 
-.pagination-button:hover:not(:disabled) {
-  background-color: #4a47a3;
-}
-
 .pagination-text {
   font-size: 1rem;
+  transition: color 0.3s ease;
+  color: #fff;
+}
+
+.sort-controls {
+  margin-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  opacity: 0.85;
+  transition: opacity 0.3s ease;
+}
+
+.sort-controls:hover {
+  opacity: 1;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: modalFadeIn 0.5s ease-in-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 40px;
+  border-radius: 8px;
+  text-align: center;
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.modal-content:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.close-button {
+  background-color: #ff4d4d;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s;
+}
+
+.close-button:hover {
+  background-color: #ff1a1a;
 }
 
 </style>

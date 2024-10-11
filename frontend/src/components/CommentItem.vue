@@ -87,6 +87,18 @@ export default {
 .comment-item {
   margin-bottom: 20px;
   list-style: none;
+  animation: fadeInComment 0.5s ease-in-out;
+}
+
+@keyframes fadeInComment {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .comment-box {
@@ -96,12 +108,17 @@ export default {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 10px;
   word-wrap: break-word;
+  transition: box-shadow 0.3s ease-in-out, transform 0.3s;
+}
+
+.comment-box:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px);
 }
 
 .comment-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   margin-bottom: 10px;
 }
 
@@ -115,31 +132,11 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+  transition: transform 0.3s;
 }
 
-.header-info {
-  flex-grow: 1;
-  margin-left: 15px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-
-.comment-username {
-  font-weight: bold;
-  color: #333;
-}
-
-.comment-date {
-  font-size: 0.8rem;
-  color: #777;
-}
-
-.comment-meta {
-  display: flex;
-  gap: 10px;
-  align-items: center;
+.avatar:hover {
+  transform: rotate(360deg);
 }
 
 .meta-button {
@@ -150,10 +147,17 @@ export default {
   padding: 5px 10px;
   cursor: pointer;
   font-size: 0.8rem;
+  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
 }
 
 .meta-button:hover {
   background-color: #4a47a3;
+  box-shadow: 0 4px 15px rgba(74, 71, 163, 0.5);
+  transform: translateY(-5px);
+}
+
+.meta-button:active {
+  transform: scale(0.98);
 }
 
 .comment-text {
@@ -165,15 +169,20 @@ export default {
   margin-top: 15px;
   padding-left: 20px;
   border-left: 2px solid #ddd;
-  background-color: honeydew;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  animation: fadeInReply 0.5s ease-in-out;
 }
 
-.reply-preview {
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 10px;
-  border-left: 4px solid #ddd;
-  padding-left: 10px;
+@keyframes fadeInReply {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .view-replies-button {
@@ -185,9 +194,16 @@ export default {
   cursor: pointer;
   font-size: 0.9rem;
   margin-top: 10px;
+  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
 }
 
 .view-replies-button:hover {
   background-color: #4a47a3;
+  transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(74, 71, 163, 0.5);
+}
+
+.view-replies-button:active {
+  transform: scale(0.98);
 }
 </style>
