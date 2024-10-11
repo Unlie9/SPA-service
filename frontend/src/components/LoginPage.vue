@@ -145,7 +145,6 @@ input:focus {
   outline: none;
 }
 
-/* Кнопка */
 button {
   width: 100%;
   padding: 12px;

@@ -6,12 +6,14 @@ This project demonstrates the integration of a modern SPA frontend with a powerf
 - **Django**: backend framework, offering a robust and scalable architecture for server-side logic.
 - **Django REST Framework**: to create a flexible and powerful API.
 - **Vue.js**: for a reactive and dynamic front-end experience, ensuring a smooth and responsive user interface.
-- **JWT authentication**: for secure and efficient user login functionality.
+- **JWT authentication**: for secure and efficient user login functionality with access and refresh.
 - **WebSockets**: from Django Channels to enable real-time, bidirectional communication, powering features such as live updates without the need for page reloads.
 - **PostgreSQL**: as the primary database for storing application data.
 - **Redis**: for channel layer binding in WebSockets, ensuring efficient real-time message distribution.
 - **Docker**: for containerized , ensuring easy scalability and consistent development environments.
 - **Deploy**: AWS hosts the application for cloud-based deployment, while Nginx serves as the reverse proxy to efficiently handle static files and requests.
+- **Sorting**: for sorting by fields as date, Email, Username.
+- **Ordering**: for ordering by ascending and descending.
 
 1. **Clone the repository**:
     ```bash
@@ -49,3 +51,5 @@ This project demonstrates the integration of a modern SPA frontend with a powerf
 ![Alt text](./frontend/public/register.jpeg)
 ![Alt text](./frontend/public/login.jpeg)
 ![Alt text](./frontend/public/chat.jpeg)
+![Alt text](./frontend/public/chat2.jpeg)
+![Alt text](./frontend/public/email.jpeg)
