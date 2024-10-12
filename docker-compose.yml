@@ -45,6 +45,7 @@ services:
     image: unlie9/spa_service_frontend:latest
     volumes:
       - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - backend
     ports:

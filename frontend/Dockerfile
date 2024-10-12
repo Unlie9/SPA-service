@@ -2,11 +2,12 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package*.json /app/
+COPY package*.json ./
 
+RUN npm add global @vue/cli
 RUN npm install
 
-COPY . /app/
+COPY . .
 
 EXPOSE 8080
 
