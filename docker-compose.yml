@@ -12,8 +12,7 @@ services:
       - db_data:/var/lib/postgresql/data
 
   backend:
-    build:
-      context: ./backend
+    image: unlie9/spa_service_backend:latest
     ports:
       - "8002:8002"
     volumes:
@@ -25,8 +24,7 @@ services:
     command: sh -c "./entrypoint.sh"
 
   daphne:
-    build:
-      context: ./backend
+    image: unlie9/spa_service_daphne:latest
     ports:
       - "8003:8003"
     volumes:
@@ -44,8 +42,7 @@ services:
       - "6379:6379"
 
   frontend:
-    build:
-      context: ./frontend
+    image: unlie9/spa_service_frontend:latest
     volumes:
       - ./frontend:/app
     depends_on:
@@ -56,7 +53,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
 
   nginx:
-    image: nginx:latest
+    image: unlie9/spa_service_nginx:latest
     depends_on:
       - frontend
       - daphne
