@@ -1,9 +1,10 @@
 import sys
 from io import BytesIO
 
+from PIL import Image
+
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from rest_framework import serializers
-from PIL import Image
 
 from comments.models import Comment
 

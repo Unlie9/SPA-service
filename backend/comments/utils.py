@@ -1,10 +1,12 @@
 import base64
 import os
 import uuid
+
 from django.core.files.base import ContentFile
 from django.utils.text import slugify
 
 from rest_framework.exceptions import ValidationError
+
 
 
 def image_file(instance, filename):

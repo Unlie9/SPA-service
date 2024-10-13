@@ -1,10 +1,10 @@
 import json
 
-from rest_framework.exceptions import ValidationError
-
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import EmptyPage, Paginator
 from django.db import transaction
+
+from rest_framework.exceptions import ValidationError
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
