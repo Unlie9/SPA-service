@@ -1,3 +1,4 @@
+import re
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
@@ -14,18 +15,25 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        return get_user_model().objects.create_user(**validated_data)
+        with transaction.atomic():
+          return get_user_model().objects.create_user(**validated_data)
+    
+    def validate_password(self, password):
+        if not re.search(r'\d', password):
+            raise serializers.ValidationError("Password must contain at least one digit.")
+        if not re.search(r'[A-Z]', password):
+            raise serializers.ValidationError("Password must contain at least one uppercase letter.")
+        return password
 
-    def update(self, instance, validated_data):
-        password = validated_data.pop("password", None)
-        user = super().update(instance, validated_data)
+    def validate_email(self, email):
+        if get_user_model().objects.filter(email=email).exists():
+            raise serializers.ValidationError("User with this email already exists.")
+        return email
 
-        if password:
-            user.set_password(password)
-            try:
-                with transaction.atomic():
-                    user.save()
-            except Exception as e:
-                raise Exception(f"error with saving password: {str(e)}")
-        return user
-
+    def validate_username(self, username):
+        if len(username) > 24:
+            raise serializers.ValidationError("Username must not exceed 24 characters.")
+        if get_user_model().objects.filter(username=username).exists():
+            raise serializers.ValidationError("Username already taken.")
+        return username
+ 

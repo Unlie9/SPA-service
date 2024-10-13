@@ -5,18 +5,19 @@
       <form @submit.prevent="register">
         <div class="input-group">
           <input v-model="username" placeholder="Username" />
+          <p v-if="usernameError" class="error-msg">{{ usernameError }}</p>
         </div>
         <div class="input-group">
           <input v-model="email" placeholder="Email" />
+          <p v-if="emailError" class="error-msg">{{ emailError }}</p>
         </div>
         <div class="input-group">
           <input type="password" v-model="password" placeholder="Password" />
+          <p v-if="passwordError" class="error-msg">{{ passwordError }}</p>
         </div>
         <button type="submit">Register</button>
       </form>
-      <p v-if="error" class="error-msg">{{ error }}</p>
 
-      <!-- Секция с переходом на логин -->
       <div class="login-section">
         <p>Already have an account?</p>
         <button @click="goToLogin" class="login-button">Login here</button>
@@ -34,23 +35,43 @@ export default {
       username: '',
       email: '',
       password: '',
-      error: null,
+      usernameError: '',
+      emailError: '',
+      passwordError: '',
     };
   },
   methods: {
     register() {
       axios
-          .post(`${process.env.VUE_APP_API_URL}/user/register/`, {
-            username: this.username,
-            email: this.email,
-            password: this.password,
-          })
-          .then(() => {
-            this.$router.push('/login');
-          })
-          .catch(() => {
-            this.error = 'Registration failed. Please check your inputs.';
-          });
+        .post(`${process.env.VUE_APP_API_URL}/user/register/`, {
+          username: this.username,
+          email: this.email,
+          password: this.password,
+        })
+        .then(() => {
+          this.$router.push('/login');
+        })
+        .catch((error) => {
+          // Сбрасываем предыдущие ошибки перед новой попыткой
+          this.usernameError = '';
+          this.emailError = '';
+          this.passwordError = '';
+
+          // Проверка и назначение ошибок для соответствующих полей
+          if (error.response && error.response.data) {
+            if (error.response.data.username) {
+              this.usernameError = error.response.data.username.join(' ');
+            }
+            if (error.response.data.email) {
+              this.emailError = error.response.data.email.join(' ');
+            }
+            if (error.response.data.password) {
+              this.passwordError = error.response.data.password.join(' ');
+            }
+          } else {
+            this.usernameError = 'An error occurred. Please try again later.';
+          }
+        });
     },
     goToLogin() {
       this.$router.push('/login');
