@@ -1,5 +1,7 @@
 import json
 
+from rest_framework.exceptions import ValidationError
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import EmptyPage, Paginator
 from django.db import transaction
@@ -9,6 +11,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 
 from comments.models import Comment
 from comments.serializers import CommentListSerializer
+from comments.utils import convert_base64_to_image
 
 
 class CommentConsumer(AsyncWebsocketConsumer):
@@ -61,6 +64,15 @@ class CommentConsumer(AsyncWebsocketConsumer):
             text = data.get("text")
             home_page = data.get("home_page")
             reply_id = data.get("reply_id")
+            image = data.get("image", None)
+
+            if image:
+                try:
+                    image = await database_sync_to_async(convert_base64_to_image)(image)
+                except ValidationError as e:
+                    await self.send(text_data=json.dumps({"error": str(e)}))
+                    return
+
 
             if data.get("action") == "list_comments":
                 self.current_sort_by = data.get("sort_by", "date")
@@ -74,7 +86,7 @@ class CommentConsumer(AsyncWebsocketConsumer):
 
             elif data.get("action") == "create_comment":
                 if text:
-                    await self.create_comment(text, home_page, reply_id)
+                    await self.create_comment(text, home_page, reply_id, image)
                     await self.channel_layer.group_send(
                         self.room_name,
                         {
@@ -89,16 +101,17 @@ class CommentConsumer(AsyncWebsocketConsumer):
                     }))
 
     @staticmethod
-    def create_comment_in_transaction(user, text, home_page, reply_comment=None):
+    def create_comment_in_transaction(user, text, home_page, reply_comment=None, image=None):
         with transaction.atomic():
             Comment.objects.create(
                 user=user,
                 text=text,
                 home_page=home_page,
-                reply=reply_comment
+                reply=reply_comment,
+                image=image
             )
 
-    async def create_comment(self, text, home_page=None, reply_id=None):
+    async def create_comment(self, text, home_page=None, reply_id=None, image=None):
         user = self.scope["user"]
         if user.is_authenticated:
             try:
@@ -109,7 +122,7 @@ class CommentConsumer(AsyncWebsocketConsumer):
                     )(pk=reply_id)
 
                 await (database_sync_to_async(self.create_comment_in_transaction)
-                       (user, text, home_page, reply_comment))
+                       (user, text, home_page, reply_comment, image))
 
             except ObjectDoesNotExist:
                 await self.send(text_data=json.dumps({
@@ -119,7 +132,6 @@ class CommentConsumer(AsyncWebsocketConsumer):
                 await self.send(text_data=json.dumps({
                     "error": f"An error occurred while creating comment."
                 }))
-                print(f"Error while creating comment: {str(e)}")
 
     async def broadcast_comments(self, event):
         await self.send_comments_list(

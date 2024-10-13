@@ -23,6 +23,11 @@
       </div>
 
       <p class="comment-text">{{ comment.text }}</p>
+      <div v-if="comment.image" class="comment-image">
+        <img :src="comment.image" alt="comment image" class="comment-img" />
+      </div>
+
+
 
       <ul v-if="comment.replies && comment.replies.length && showReplies" class="reply-list">
         <comment-item
@@ -214,4 +219,18 @@ export default {
 .view-replies-button:active {
   transform: scale(0.98);
 }
+
+.comment-image {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.comment-img {
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 </style>

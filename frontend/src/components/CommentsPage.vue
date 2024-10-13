@@ -38,6 +38,7 @@
     <form @submit.prevent="sendCommentOrReply" class="comment-form">
       <textarea v-model="newComment" placeholder="Write a message..." class="textarea"></textarea>
       <input v-model="homePage" type="url" placeholder="Your home page (optional)" class="input"/>
+      <input type="file" @change="onImageSelected" class="input"/>
       <button type="submit" class="submit-button">{{ replyTo ? 'Reply' : 'Post Comment' }}</button>
     </form>
 
@@ -85,6 +86,8 @@ export default {
       selectedComment: null,
       showEmailModal: false,
       showHomepageModal: false,
+      imageFile: null,
+      imageBase64: null,
     };
   },
   methods: {
@@ -149,6 +152,21 @@ export default {
       this.currentPage = this.totalPages;
     },
 
+    onImageSelected(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.convertToBase64(file);
+      }
+    },
+
+    convertToBase64(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.imageBase64 = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    },
+
     sendCommentOrReply() {
       if (this.newComment.trim()) {
         const payload = {
@@ -161,14 +179,17 @@ export default {
           payload.reply_id = this.replyTo;
         }
 
+        if (this.imageBase64) {
+          payload.image = this.imageBase64;
+        }
+
         console.log('Sending comment payload:', payload);
         this.socket.send(JSON.stringify(payload));
 
         this.newComment = '';
         this.homePage = '';
+        this.imageBase64 = null; 
         this.replyTo = null;
-        this.replyToUsername = null;
-        this.replyToText = null;
       }
     },
 
