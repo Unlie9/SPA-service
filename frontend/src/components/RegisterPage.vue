@@ -52,12 +52,9 @@ export default {
           this.$router.push('/login');
         })
         .catch((error) => {
-          // Сбрасываем предыдущие ошибки перед новой попыткой
           this.usernameError = '';
           this.emailError = '';
           this.passwordError = '';
-
-          // Проверка и назначение ошибок для соответствующих полей
           if (error.response && error.response.data) {
             if (error.response.data.username) {
               this.usernameError = error.response.data.username.join(' ');
