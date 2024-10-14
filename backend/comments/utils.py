@@ -19,7 +19,7 @@ def image_file(instance, filename):
 def convert_base64_to_image(image_base64):
     try:
         format, imgstr = image_base64.split(';base64,') 
-        ext = format.split('/')[-1]  # Получаем расширение файла
+        ext = format.split('/')[-1]
         return ContentFile(base64.b64decode(imgstr), name=f'image.{ext}')
     except Exception as e:
         raise ValidationError("Invalid image data.")
